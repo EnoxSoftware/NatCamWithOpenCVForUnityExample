@@ -1,0 +1,358 @@
+﻿// Make sure to uncomment '#define OPENCV_API' in NatCam (Assets>NatCam>Pro>Plugins>Managed>NatCam.cs) and in OpenCVBehaviour
+//#define OPENCV_API // Uncomment this to run this example properly
+
+using UnityEngine;
+using NatCamU.Core;
+using NatCamU.Pro;
+using System.Collections.Generic;
+using System;
+using UnityEngine.UI;
+using System.Runtime.InteropServices;
+
+#if UNITY_5_3 || UNITY_5_3_OR_NEWER
+using UnityEngine.SceneManagement;
+#endif
+
+namespace NatCamWithOpenCVForUnityExample
+{
+    /// <summary>
+    /// NatCamPreview Only Example
+    /// An example of displaying the preview frame of camera only using NatCam.
+    /// </summary>
+    public class NatCamPreviewOnlyExample : NatCamBehaviour
+    {
+        public enum ImageProcessingType
+        {
+            None,
+            DrawLine,
+            ConvertToGray,
+        }
+
+        [Header("ImageProcessing")]
+        public ImageProcessingType imageProcessingType = ImageProcessingType.None;
+        public Dropdown imageProcessingTypeDropdown; 
+
+        [Header("Preview")]
+        public int requestedFPS = 30;
+        public AspectRatioFitter aspectFitter;
+
+        bool didUpdateThisFrame = false;
+        private Texture2D texture;
+        private byte[] buffer;
+        const TextureFormat textureFormat =
+        #if UNITY_IOS && !UNITY_EDITOR
+        TextureFormat.BGRA32;
+        #else
+        TextureFormat.RGBA32;
+        #endif
+
+        int updateCount = 0;
+        int onFrameCount = 0;
+        int drawCount = 0;
+
+        float elapsed = 0;
+        float updateFPS = 0;
+        float onFrameFPS = 0;
+        float drawFPS = 0;
+
+        FpsMonitor fpsMonitor;
+
+        public override void Start () 
+        {
+            base.Start ();
+
+            NatCam.Camera.SetFramerate (requestedFPS);
+
+            fpsMonitor = GetComponent<FpsMonitor> ();
+            if (fpsMonitor != null){
+                fpsMonitor.Add ("Name", "NatCamPreviewOnlyExample");
+                fpsMonitor.Add ("onFrameFPS", onFrameFPS.ToString("F1"));
+                fpsMonitor.Add ("drawFPS", drawFPS.ToString("F1"));
+                fpsMonitor.Add ("width", "");
+                fpsMonitor.Add ("height", "");
+                fpsMonitor.Add ("orientation", "");
+            }
+
+            imageProcessingTypeDropdown.value = (int)imageProcessingType;
+        }
+
+        public override void OnStart () {
+
+            base.OnStart ();
+
+            // Scale the panel to match aspect ratios
+            aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
+
+            Debug.Log ("# Active Camera Properties #####################");
+
+            try
+            {
+                Dictionary<string, string> cameraProps = new Dictionary<string, string> ();
+
+                cameraProps.Add ("IsFrontFacing", NatCam.Camera.IsFrontFacing.ToString());
+
+                cameraProps.Add ("Framerate", NatCam.Camera.Framerate.ToString());
+
+                cameraProps.Add ("PreviewResolution", NatCam.Camera.PreviewResolution.width + "x" + NatCam.Camera.PreviewResolution.height);
+                cameraProps.Add ("PhotoResolution", NatCam.Camera.PhotoResolution.width + "x" + NatCam.Camera.PhotoResolution.height);
+
+                cameraProps.Add ("ExposureMode", NatCam.Camera.ExposureMode.ToString());
+                cameraProps.Add ("ExposureBias", NatCam.Camera.ExposureBias.ToString());
+                cameraProps.Add ("MinExposureBias", NatCam.Camera.MinExposureBias.ToString());
+                cameraProps.Add ("MaxExposureBias", NatCam.Camera.MaxExposureBias.ToString());
+
+                cameraProps.Add ("IsFlashSupported", NatCam.Camera.IsFlashSupported.ToString());
+                cameraProps.Add ("FlashMode", NatCam.Camera.FlashMode.ToString());
+
+                cameraProps.Add ("FocusMode", NatCam.Camera.FocusMode.ToString());
+
+                cameraProps.Add ("HorizontalFOV", NatCam.Camera.HorizontalFOV.ToString());
+                cameraProps.Add ("VerticalFOV", NatCam.Camera.VerticalFOV.ToString());
+
+                cameraProps.Add ("IsTorchSupported", NatCam.Camera.IsTorchSupported.ToString());
+                cameraProps.Add ("TorchEnabled", NatCam.Camera.TorchEnabled.ToString());
+
+                cameraProps.Add ("MaxZoomRatio", NatCam.Camera.MaxZoomRatio.ToString());
+                cameraProps.Add ("ZoomRatio", NatCam.Camera.ZoomRatio.ToString());
+
+                foreach (string key in cameraProps.Keys)
+                {
+                    Debug.Log(key + ": " + cameraProps[key]);
+                }
+
+                if (fpsMonitor != null && verbose){
+                    fpsMonitor.boxWidth = 200;
+                    fpsMonitor.boxHeight = 620;
+                    fpsMonitor.LocateGUI();
+
+                    foreach (string key in cameraProps.Keys)
+                    {
+                        fpsMonitor.Add (key, cameraProps[key]);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                Debug.Log ("Exception: " + e);
+                if (fpsMonitor != null && verbose) {
+                    fpsMonitor.consoleText = "Exception: " + e;
+                }
+            }
+            Debug.Log ("#######################################");
+
+
+            Debug.Log ("OnStart (): " + NatCam.Preview.width + " " + NatCam.Preview.height);
+        }
+
+        public override void OnFrame () {
+
+            onFrameCount++;
+
+            if (imageProcessingType == ImageProcessingType.None) {
+                didUpdateThisFrame = true;
+                preview.texture = NatCam.Preview;
+            } else {
+                // Declare buffer properties
+                IntPtr handle;
+                int width, height, size;
+                // Read the preview buffer
+                if (!NatCam.PreviewBuffer (out handle, out width, out height, out size))
+                    return;
+
+                didUpdateThisFrame = true;
+
+                // Size checking
+                if (buffer != null && buffer.Length != size) {
+                    buffer = null;
+                }
+                // Create the managed buffer
+                buffer = buffer ?? new byte[size];
+
+                // Copy the pixel data from the native buffer into our managed bufffer
+                // This is faster than accessing each byte using Marshal.ReadByte
+                Marshal.Copy(handle, buffer, 0, size);
+
+                // Size checking
+                if (texture && (texture.width != width || texture.height != height)) {
+                    Texture2D.Destroy (texture);
+                    texture = null;
+                }
+                // Create the texture
+                texture = texture ?? new Texture2D (width, height, textureFormat, false, false);
+            }
+        }
+
+        void Update(){
+
+            updateCount++;
+            elapsed += Time.deltaTime;
+            if (elapsed >= 1f) {
+                updateFPS = updateCount / elapsed;
+                onFrameFPS = onFrameCount / elapsed;
+                drawFPS = drawCount / elapsed;
+                updateCount = 0;
+                onFrameCount = 0;
+                drawCount = 0;
+                elapsed = 0;
+
+                Debug.Log ("didUpdateThisFrame: " + didUpdateThisFrame + " updateFPS: " + updateFPS + " onFrameFPS: " + onFrameFPS + " drawFPS: " + drawFPS);
+                if (fpsMonitor != null) {
+                    fpsMonitor.Add ("onFrameFPS", onFrameFPS.ToString("F1"));
+                    fpsMonitor.Add ("drawFPS", drawFPS.ToString("F1"));
+
+                    if (NatCam.Preview != null) {
+                        fpsMonitor.Add ("width", NatCam.Preview.width.ToString ());
+                        fpsMonitor.Add ("height", NatCam.Preview.height.ToString ());
+                    }
+                    fpsMonitor.Add ("orientation", Screen.orientation.ToString());
+                }
+            }
+
+            if (NatCam.IsPlaying && didUpdateThisFrame) {
+                drawCount++;
+
+                if (imageProcessingType == ImageProcessingType.None) {   
+                    
+                } else {
+                    
+                    if (texture.width * texture.height * 4 != buffer.Length)
+                        return;
+
+                    // Process
+                    ProcessImage (buffer, texture.width, texture.height, buffer.Length, imageProcessingType);
+
+                    // Load texture data
+                    texture.LoadRawTextureData (buffer);
+                    // Upload to GPU
+                    texture.Apply ();
+                    // Set RawImage texture
+                    preview.texture = texture;
+                }
+            }
+        }
+
+        void LateUpdate ()
+        {
+            didUpdateThisFrame = false;
+        }
+
+        private void ProcessImage (Byte[] buffer, int width, int height, int size, ImageProcessingType imageProcessingType = ImageProcessingType.None)
+        {
+            switch (imageProcessingType) {
+            case ImageProcessingType.DrawLine:
+                // Draw a diagonal line on our image
+                float inclination = height / (float)width;
+                for (int i = 0; i < 4; i++) {
+                    for (int x = 0; x < width; x++) {
+                        int y = (int)(-inclination*x) + height-2+i;
+                        if (y < 0)
+                            y = 0;
+                        if (y > height-1)
+                            y = height-1;
+                        int p = (x * 4) + (y * width * 4);
+                        // Set pixels in the buffer
+                        #if UNITY_IOS && !UNITY_EDITOR 
+                        buffer[p] = 0; buffer[p + 1] = 0; buffer[p + 2] = 255; buffer[p + 3] = 255;
+                        #else
+                        buffer[p] = 255; buffer[p + 1] = 0; buffer[p + 2] = 0; buffer[p + 3] = 255;
+                        #endif
+                    }
+                }
+
+                break;
+            case ImageProcessingType.ConvertToGray:
+                // Convert a four-channel pixel buffer to greyscale
+                // Iterate over the buffer
+                for (int i = 0; i < size; i += 4) {
+                    // Get channel intensities
+                    byte
+                    r = buffer[i + 0], g = buffer[i + 1],
+                    b = buffer[i + 2], a = buffer[i + 3],
+                    // Use quick luminance approximation to save time and memory
+                    l = (byte)((r + r + r + b + g + g + g + g) >> 3);
+                    // Set pixels in the buffer
+                    buffer[i] = buffer[i + 1] = buffer[i + 2] = l; buffer[i + 3] = a;
+                }
+
+                break;
+            }
+        }
+
+        /// <summary>
+        /// Releases all resource.
+        /// </summary>
+        private void Dispose ()
+        {
+            NatCam.Release ();
+
+            if (texture != null) {
+                Texture2D.Destroy (texture);
+                texture = null;
+            }
+
+            didUpdateThisFrame = false;
+        }
+
+        /// <summary>
+        /// Raises the destroy event.
+        /// </summary>
+        void OnDestroy ()
+        {
+            Dispose ();
+        }
+
+        /// <summary>
+        /// Raises the back button click event.
+        /// </summary>
+        public void OnBackButtonClick ()
+        {
+            #if UNITY_5_3 || UNITY_5_3_OR_NEWER
+            SceneManager.LoadScene ("NatCamWithOpenCVForUnityExample");
+            #else
+            Application.LoadLevel ("NatCamWithOpenCVForUnityExample");
+            #endif
+        }
+
+        /// <summary>
+        /// Raises the play button click event.
+        /// </summary>
+        public void OnPlayButtonClick ()
+        {
+            NatCam.Play ();
+        }
+
+        /// <summary>
+        /// Raises the pause button click event.
+        /// </summary>
+        public void OnPauseButtonClick ()
+        {
+            NatCam.Pause ();
+        }
+
+        /// <summary>
+        /// Raises the stop button click event.
+        /// </summary>
+        public void OnStopButtonClick ()
+        {
+            NatCam.Pause ();
+        }
+
+        /// <summary>
+        /// Raises the change camera button click event.
+        /// </summary>
+        public void OnChangeCameraButtonClick ()
+        {
+            SwitchCamera ();
+        }
+
+        /// <summary>
+        /// Raises the image processing type dropdown value changed event.
+        /// </summary>
+        public void OnImageProcessingTypeDropdownValueChanged (int result)
+        {
+            if ((int)imageProcessingType != result) {
+                imageProcessingType = (ImageProcessingType)result;
+            }
+        }
+    }        
+}
