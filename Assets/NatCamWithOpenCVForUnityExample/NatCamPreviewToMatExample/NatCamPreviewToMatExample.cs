@@ -55,6 +55,9 @@ namespace NatCamWithOpenCVForUnityExample
         float onFrameFPS = 0;
         float drawFPS = 0;
 
+        /// <summary>
+        /// The FPS monitor.
+        /// </summary>
         FpsMonitor fpsMonitor;
 
         private Mat matrix;
@@ -87,8 +90,11 @@ namespace NatCamWithOpenCVForUnityExample
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
         }
 
-        public override void OnStart () {
-
+        /// <summary>
+        /// Method called when the camera preview starts
+        /// </summary>
+        public override void OnStart ()
+        {
             // Initialize the texture
             // NatCam.PreviewMatrix(ref matrix);
             IntPtr ptr; int width, height, size;
@@ -120,14 +126,19 @@ namespace NatCamWithOpenCVForUnityExample
             Debug.Log ("OnStart (): " + matrix.cols() + " " + matrix.rows() + " " + NatCam.Preview.width + " " + NatCam.Preview.height + " " + texture.width + " " + texture.height);
         }
 
-        public override void OnFrame () {
-
+        /// <summary>
+        /// Method called on every frame that the camera preview updates
+        /// </summary>
+        public override void OnFrame ()
+        {
             onFrameCount++;
 
             didUpdateThisFrame = true;
         }
 
-        void Update() {
+        // Update is called once per frame
+        void Update()
+        {
 
             updateCount++;
             elapsed += Time.deltaTime;
@@ -168,10 +179,7 @@ namespace NatCamWithOpenCVForUnityExample
                     //Imgproc.putText (matrix, "updateFPS:" + updateFPS.ToString("F1") + " onFrameFPS:" + onFrameFPS.ToString("F1") + " drawFPS:" + drawFPS.ToString("F1"), new Point (5, matrix.rows () - 50), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
 
                     // Restore the coordinate system of the image.
-                    Core.flip (matrix, matrix, 0);
-
-                    texture.LoadRawTextureData ((System.IntPtr)matrix.dataAddr (), (int)matrix.total () * (int)matrix.elemSize ());
-                    texture.Apply ();
+                    Utils.fastMatToTexture2D (matrix, texture , true, 0, false);
                 }
             }
         }
@@ -255,6 +263,11 @@ namespace NatCamWithOpenCVForUnityExample
             return matrix;
         }
 
+        /// <summary>
+        /// Process the image.
+        /// </summary>
+        /// <param name="matrix">Mat.</param>
+        /// <param name="imageProcessingType">ImageProcessingType.</param>
         private void ProcessImage (Mat matrix, ImageProcessingType imageProcessingType = ImageProcessingType.None)
         {
             switch (imageProcessingType) {

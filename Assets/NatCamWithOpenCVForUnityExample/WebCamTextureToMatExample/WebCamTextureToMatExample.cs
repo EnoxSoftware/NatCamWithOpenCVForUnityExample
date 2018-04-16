@@ -112,6 +112,9 @@ namespace NatCamWithOpenCVForUnityExample
         float onFrameFPS = 0;
         float drawFPS = 0;
 
+        /// <summary>
+        /// The FPS monitor.
+        /// </summary>
         FpsMonitor fpsMonitor;
 
 
@@ -130,6 +133,17 @@ namespace NatCamWithOpenCVForUnityExample
 
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
 
+            Initialize ();
+        }
+
+        /// <summary>
+        /// Initializes webcam texture.
+        /// </summary>
+        private void Initialize ()
+        {
+            if (isInitWaiting)
+                return;
+
             #if UNITY_ANDROID && !UNITY_EDITOR
             // Set the requestedFPS parameter to avoid the problem of the WebCamTexture image becoming low light on some Android devices. (Pixel, pixel 2)
             // https://forum.unity.com/threads/android-webcamtexture-in-low-light-only-some-models.520656/
@@ -137,49 +151,18 @@ namespace NatCamWithOpenCVForUnityExample
             if (requestedIsFrontFacing) {
                 int rearCameraFPS = requestedFPS;
                 requestedFPS = 15;
-                Initialize ();
+                StartCoroutine (_Initialize ());
                 requestedFPS = rearCameraFPS;
             } else {
-                Initialize ();
+            StartCoroutine (_Initialize ());
             }
             #else
-            Initialize ();
+            StartCoroutine (_Initialize ());
             #endif
         }
 
         /// <summary>
-        /// Initialize of web cam texture.
-        /// </summary>
-        private void Initialize ()
-        {
-            if (isInitWaiting)
-                return;
-
-            StartCoroutine (_Initialize ());
-        }
-
-        /// <summary>
-        /// Initialize of webcam texture.
-        /// </summary>
-        /// <param name="deviceName">Device name.</param>
-        /// <param name="requestedWidth">Requested width.</param>
-        /// <param name="requestedHeight">Requested height.</param>
-        /// <param name="requestedIsFrontFacing">If set to <c>true</c> requested to using the front camera.</param>
-        private void Initialize (string deviceName, int requestedWidth, int requestedHeight, bool requestedIsFrontFacing)
-        {
-            if (isInitWaiting)
-                return;
-
-            this.requestedDeviceName = deviceName;
-            this.requestedWidth = requestedWidth;
-            this.requestedHeight = requestedHeight;
-            this.requestedIsFrontFacing = requestedIsFrontFacing;
-
-            StartCoroutine (_Initialize ());
-        }
-
-        /// <summary>
-        /// Initialize of webcam texture by coroutine.
+        /// Initializes webcam texture by coroutine.
         /// </summary>
         private IEnumerator _Initialize ()
         {
@@ -307,7 +290,7 @@ namespace NatCamWithOpenCVForUnityExample
         }
 
         /// <summary>
-        /// Initialize completion handler of the webcam texture.
+        /// Raises the webcam texture initialized event.
         /// </summary>
         private void OnInited ()
         {
@@ -379,9 +362,6 @@ namespace NatCamWithOpenCVForUnityExample
                     //Imgproc.putText (matrix, "W:" + matrix.width () + " H:" + matrix.height () + " SO:" + Screen.orientation, new Point (5, matrix.rows () - 10), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
                     //Imgproc.putText (matrix, "updateFPS:" + updateFPS.ToString("F1") + " onFrameFPS:" + onFrameFPS.ToString("F1") + " drawFPS:" + drawFPS.ToString("F1"), new Point (5, matrix.rows () - 50), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
 
-                    // Restore the coordinate system of the image.
-                    Core.flip (matrix, matrix, 0);
-
                     if (texture.width != matrix.width () || texture.height != matrix.height ()) {
                         Texture2D.Destroy(texture);
                         texture = new Texture2D (matrix.width (), matrix.height (), TextureFormat.RGBA32, false);
@@ -389,8 +369,8 @@ namespace NatCamWithOpenCVForUnityExample
                         aspectFitter.aspectRatio = texture.width / (float)texture.height;
                     }
 
-                    texture.LoadRawTextureData ((System.IntPtr)matrix.dataAddr (), (int)matrix.total () * (int)matrix.elemSize ());
-                    texture.Apply ();
+                    // Restore the coordinate system of the image.
+                    Utils.fastMatToTexture2D (matrix, texture , true, 0, false);
                 }
             }
         }
@@ -417,6 +397,11 @@ namespace NatCamWithOpenCVForUnityExample
             #endif
         }
 
+        /// <summary>
+        /// Process the image.
+        /// </summary>
+        /// <param name="matrix">Mat.</param>
+        /// <param name="imageProcessingType">ImageProcessingType.</param>
         private void ProcessImage (Mat matrix, ImageProcessingType imageProcessingType = ImageProcessingType.None)
         {
             switch (imageProcessingType) {
@@ -439,7 +424,11 @@ namespace NatCamWithOpenCVForUnityExample
                 break;
             }
         }
-            
+
+        /// <summary>
+        /// Flips the mat.
+        /// </summary>
+        /// <param name="mat">Mat.</param>
         private void FlipMat (Mat mat)
         {
             int flipCode = int.MinValue;
@@ -521,18 +510,9 @@ namespace NatCamWithOpenCVForUnityExample
         public void OnChangeCameraButtonClick ()
         {
             if (hasInitDone) {
-                #if UNITY_ANDROID && !UNITY_EDITOR
-                if (!requestedIsFrontFacing) {
-                    int rearCameraFPS = requestedFPS;
-                    requestedFPS = 15;
-                    Initialize (null, requestedWidth, requestedHeight, !requestedIsFrontFacing);
-                    requestedFPS = rearCameraFPS;
-                } else {
-                    Initialize (null, requestedWidth, requestedHeight, !requestedIsFrontFacing);
-                }
-                #else
-                Initialize (null, requestedWidth, requestedHeight, !requestedIsFrontFacing);
-                #endif
+                requestedDeviceName = null;
+                requestedIsFrontFacing = !requestedIsFrontFacing;
+                Initialize ();
             }
         }
 

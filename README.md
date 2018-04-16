@@ -5,10 +5,10 @@ An example of a benchmark test integrating NatCam and OpenCVForUnity.
 
 ## Environment
 * Anddroid (Pixel, Nexus 7, Zenfone, SC-04E) / iOS (iPhone8, iPhone6)
-* Unity 5.6.1f1, Unity 5.6.5f1, Unity 2017.2
+* Unity >= 5.6.1f1
 * Scripting backend MONO / IL2CPP
 * NatCam Pro 1.6f2 ([https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154](https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154))  
-* OpenCV for Unity 2.2.7 ([https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088))  
+* OpenCV for Unity 2.2.8 ([https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088))  
 
 
 Demo

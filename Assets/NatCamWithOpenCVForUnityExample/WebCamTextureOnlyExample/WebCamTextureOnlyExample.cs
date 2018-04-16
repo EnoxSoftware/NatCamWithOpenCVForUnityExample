@@ -12,7 +12,6 @@ namespace NatCamWithOpenCVForUnityExample
     /// <summary>
     /// WebCamTexture Only Example
     /// An example of displaying the preview frame of camera only using WebCamTexture API.
-    /// TODO The function to convert the camera frame image to the correct direction has not been implemented yet.
     /// </summary>
     public class WebCamTextureOnlyExample : MonoBehaviour
     {
@@ -57,9 +56,19 @@ namespace NatCamWithOpenCVForUnityExample
         Color32[] colors;
 
         /// <summary>
+        /// The rotated colors.
+        /// </summary>
+        Color32[] rotatedColors;
+
+        /// <summary>
         /// The texture.
         /// </summary>
         Texture2D texture;
+        
+        /// <summary>
+        /// Determines if rotates 90 degree.
+        /// </summary>
+        bool rotate90Degree = false;
 
         /// <summary>
         /// Indicates whether this instance is waiting for initialization to complete.
@@ -70,6 +79,21 @@ namespace NatCamWithOpenCVForUnityExample
         /// Indicates whether this instance has been initialized.
         /// </summary>
         bool hasInitDone = false;
+        
+        /// <summary>
+        /// The screenOrientation.
+        /// </summary>
+        ScreenOrientation screenOrientation;
+
+        /// <summary>
+        /// The width of the screen.
+        /// </summary>
+        int screenWidth;
+
+        /// <summary>
+        /// The height of the screen.
+        /// </summary>
+        int screenHeight;
 
 
         public enum ImageProcessingType
@@ -97,6 +121,9 @@ namespace NatCamWithOpenCVForUnityExample
         float onFrameFPS = 0;
         float drawFPS = 0;
 
+        /// <summary>
+        /// The FPS monitor.
+        /// </summary>
         FpsMonitor fpsMonitor;
 
 
@@ -115,6 +142,17 @@ namespace NatCamWithOpenCVForUnityExample
 
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
 
+            Initialize ();
+        }
+
+        /// <summary>
+        /// Initializes webcam texture.
+        /// </summary>
+        private void Initialize ()
+        {
+            if (isInitWaiting)
+                return;
+
             #if UNITY_ANDROID && !UNITY_EDITOR
             // Set the requestedFPS parameter to avoid the problem of the WebCamTexture image becoming low light on some Android devices. (Pixel, pixel 2)
             // https://forum.unity.com/threads/android-webcamtexture-in-low-light-only-some-models.520656/
@@ -122,49 +160,18 @@ namespace NatCamWithOpenCVForUnityExample
             if (requestedIsFrontFacing) {
                 int rearCameraFPS = requestedFPS;
                 requestedFPS = 15;
-                Initialize ();
+                StartCoroutine (_Initialize ());
                 requestedFPS = rearCameraFPS;
             } else {
-                Initialize ();
+                StartCoroutine (_Initialize ());
             }
             #else
-            Initialize ();
+            StartCoroutine (_Initialize ());
             #endif
         }
 
         /// <summary>
-        /// Initialize of web cam texture.
-        /// </summary>
-        private void Initialize ()
-        {
-            if (isInitWaiting)
-                return;
-
-            StartCoroutine (_Initialize ());
-        }
-
-        /// <summary>
-        /// Initialize of webcam texture.
-        /// </summary>
-        /// <param name="deviceName">Device name.</param>
-        /// <param name="requestedWidth">Requested width.</param>
-        /// <param name="requestedHeight">Requested height.</param>
-        /// <param name="requestedIsFrontFacing">If set to <c>true</c> requested to using the front camera.</param>
-        private void Initialize (string deviceName, int requestedWidth, int requestedHeight, bool requestedIsFrontFacing)
-        {
-            if (isInitWaiting)
-                return;
-
-            this.requestedDeviceName = deviceName;
-            this.requestedWidth = requestedWidth;
-            this.requestedHeight = requestedHeight;
-            this.requestedIsFrontFacing = requestedIsFrontFacing;
-
-            StartCoroutine (_Initialize ());
-        }
-
-        /// <summary>
-        /// Initialize of webcam texture by coroutine.
+        /// Initializes webcam texture by coroutine.
         /// </summary>
         private IEnumerator _Initialize ()
         {
@@ -252,6 +259,9 @@ namespace NatCamWithOpenCVForUnityExample
                     Debug.Log ("name:" + webCamTexture.deviceName + " width:" + webCamTexture.width + " height:" + webCamTexture.height + " fps:" + webCamTexture.requestedFPS);
                     Debug.Log ("videoRotationAngle:" + webCamTexture.videoRotationAngle + " videoVerticallyMirrored:" + webCamTexture.videoVerticallyMirrored + " isFrongFacing:" + webCamDevice.isFrontFacing);
 
+                    screenOrientation = Screen.orientation;
+                    screenWidth = Screen.width;
+                    screenHeight = Screen.height;
                     isInitWaiting = false;
                     hasInitDone = true;
 
@@ -284,21 +294,31 @@ namespace NatCamWithOpenCVForUnityExample
         }
 
         /// <summary>
-        /// Initialize completion handler of the webcam texture.
+        /// Raises the webcam texture initialized event.
         /// </summary>
         private void OnInited ()
         {
-            if (colors == null || colors.Length != webCamTexture.width * webCamTexture.height)
+            if (colors == null || colors.Length != webCamTexture.width * webCamTexture.height) {
                 colors = new Color32[webCamTexture.width * webCamTexture.height];
-
-            if (texture && (texture.width != webCamTexture.width || texture.height != webCamTexture.height)) {
-                Texture2D.Destroy(texture);
-                texture = null;
+                rotatedColors = new Color32[webCamTexture.width * webCamTexture.height];
             }
-            texture = texture ?? new Texture2D (webCamTexture.width, webCamTexture.height, TextureFormat.RGBA32, false);
+
+            #if !UNITY_EDITOR && !(UNITY_STANDALONE || UNITY_WEBGL) 
+            if (Screen.orientation == ScreenOrientation.Portrait || Screen.orientation == ScreenOrientation.PortraitUpsideDown) {
+                rotate90Degree = true;
+            }else{
+                rotate90Degree = false;
+            }
+            #endif
+
+            if (rotate90Degree) {
+                texture = new Texture2D (webCamTexture.height, webCamTexture.width, TextureFormat.RGBA32, false);
+            } else {
+                texture = new Texture2D (webCamTexture.width, webCamTexture.height, TextureFormat.RGBA32, false);
+            }  
 
             // Scale the panel to match aspect ratios
-            aspectFitter.aspectRatio = webCamTexture.width / (float)webCamTexture.height;
+            aspectFitter.aspectRatio = texture.width / (float)texture.height;
 
             Debug.Log ("OnInited (): " + texture.width + " " + texture.height);
         }
@@ -329,19 +349,28 @@ namespace NatCamWithOpenCVForUnityExample
                     fpsMonitor.Add ("orientation", Screen.orientation.ToString());
                 }
             }
+            
+
+            // Catch the orientation change of the screen.
+            if (screenOrientation != Screen.orientation && (screenWidth != Screen.width || screenHeight != Screen.height)) {
+                Initialize ();
+            } else {
+                screenWidth = Screen.width;
+                screenHeight = Screen.height;
+            }
 
             if (hasInitDone && webCamTexture.isPlaying && webCamTexture.didUpdateThisFrame) {
 
                 drawCount++;
 
-                if (imageProcessingType == ImageProcessingType.None) {
-                    preview.texture = webCamTexture;
-                } else {
-                    Color32[] pixels = webCamTexture.GetPixels32 ();
-                    pixels.CopyTo (colors, 0);
+                Color32[] colors = GetColors ();
 
-                    // Process
-                    ProcessImage (colors, webCamTexture.width, webCamTexture.height, colors.Length, imageProcessingType);
+                if (colors != null) {
+
+                    if (imageProcessingType != ImageProcessingType.None) {
+                        // Process
+                        ProcessImage (colors, texture.width, texture.height, colors.Length, imageProcessingType);
+                    }
 
                     // Set texture data
                     texture.SetPixels32 (colors);
@@ -353,6 +382,32 @@ namespace NatCamWithOpenCVForUnityExample
             }
         }
 
+        /// <summary>
+        /// Gets the current WebCameraTexture frame that converted to the correct direction.
+        /// </summary>
+        private Color32[] GetColors ()
+        {
+            webCamTexture.GetPixels32 (colors);
+           
+            //Adjust an array of color pixels according to screen orientation and WebCamDevice parameter.
+            if (rotate90Degree) {
+                Rotate90CW (colors, rotatedColors, webCamTexture.width, webCamTexture.height);
+                FlipColors (rotatedColors, webCamTexture.width, webCamTexture.height);
+                return rotatedColors;
+            } else {
+                FlipColors (colors, webCamTexture.width, webCamTexture.height);
+                return colors;
+            }
+        }
+
+        /// <summary>
+        /// Process the image.
+        /// </summary>
+        /// <param name="buffer">Colors.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        /// <param name="size">Size.</param>
+        /// <param name="imageProcessingType">ImageProcessingType.</param>
         private void ProcessImage (Color32[] buffer, int width, int height, int size, ImageProcessingType imageProcessingType = ImageProcessingType.None)
         {
             switch (imageProcessingType) {
@@ -446,18 +501,9 @@ namespace NatCamWithOpenCVForUnityExample
         public void OnChangeCameraButtonClick ()
         {
             if (hasInitDone) {
-                #if UNITY_ANDROID && !UNITY_EDITOR
-                if (!requestedIsFrontFacing) {
-                    int rearCameraFPS = requestedFPS;
-                    requestedFPS = 15;
-                    Initialize (null, requestedWidth, requestedHeight, !requestedIsFrontFacing);
-                    requestedFPS = rearCameraFPS;
-                } else {
-                    Initialize (null, requestedWidth, requestedHeight, !requestedIsFrontFacing);
-                }
-                #else
-                Initialize (null, requestedWidth, requestedHeight, !requestedIsFrontFacing);
-                #endif
+                requestedDeviceName = null;
+                requestedIsFrontFacing = !requestedIsFrontFacing;
+                Initialize ();
             }
         }
 
@@ -468,6 +514,153 @@ namespace NatCamWithOpenCVForUnityExample
         {
             if ((int)imageProcessingType != result) {
                 imageProcessingType = (ImageProcessingType)result;
+            }
+        }
+
+        /// <summary>
+        /// Flips the colors.
+        /// </summary>
+        /// <param name="colors">Colors.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        void FlipColors (Color32[] colors, int width, int height)
+        {
+            int flipCode = int.MinValue;
+
+            if (webCamDevice.isFrontFacing) {
+                if (webCamTexture.videoRotationAngle == 0) {
+                    flipCode = 1;
+                } else if (webCamTexture.videoRotationAngle == 90) {
+                    flipCode = 1;
+                }
+                if (webCamTexture.videoRotationAngle == 180) {
+                    flipCode = 0;
+                } else if (webCamTexture.videoRotationAngle == 270) {
+                    flipCode = 0;
+                }
+            } else {
+                if (webCamTexture.videoRotationAngle == 180) {
+                    flipCode = -1;
+                } else if (webCamTexture.videoRotationAngle == 270) {
+                    flipCode = -1;
+                }
+            }                
+
+            if (flipCode > int.MinValue) {
+                if (rotate90Degree) {
+                    if (flipCode == 0) {
+                        FlipVertical (colors, colors, height, width);
+                    } else if (flipCode == 1) {
+                        FlipHorizontal (colors, colors, height, width);
+                    } else if (flipCode < 0) {
+                        Rotate180 (colors, colors, height, width);
+                    }
+                } else {
+                    if (flipCode == 0) {
+                        FlipVertical (colors, colors, width, height);
+                    } else if (flipCode == 1) {
+                        FlipHorizontal (colors, colors, width, height);
+                    } else if (flipCode < 0) {
+                        Rotate180 (colors, colors, height, width);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Flips vertical.
+        /// </summary>
+        /// <param name="src">Src colors.</param>
+        /// <param name="dst">Dst colors.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        void FlipVertical (Color32[] src, Color32[] dst, int width, int height)
+        {
+            for(var i = 0; i < height / 2; i++) {
+                var y = i * width;
+                var x = (height - i - 1) * width;
+                for(var j = 0; j < width; j++) {
+                    int s = y + j;
+                    int t = x + j;
+                    Color32 c = src[s];
+                    dst[s] = src[t];
+                    dst[t] = c;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Flips horizontal.
+        /// </summary>
+        /// <param name="src">Src colors.</param>
+        /// <param name="dst">Dst colors.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        void FlipHorizontal (Color32[] src, Color32[] dst, int width, int height)
+        {
+            for (int i = 0; i < height; i++) {
+                int y = i * width;
+                int x = y + width - 1;
+                for(var j = 0; j < width / 2; j++) {
+                    int s = y + j;
+                    int t = x - j;
+                    Color32 c = src[s];
+                    dst[s] = src[t];
+                    dst[t] = c;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Rotates 180 degrees.
+        /// </summary>
+        /// <param name="src">Src colors.</param>
+        /// <param name="dst">Dst colors.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        void Rotate180 (Color32[] src, Color32[] dst, int height, int width)
+        {
+            int i = src.Length;
+            for (int x = 0; x < i/2; x++) {
+                Color32 t = src[x];
+                dst[x] = src[i-x-1];
+                dst[i-x-1] = t;
+            }
+        }
+
+        /// <summary>
+        /// Rotates 90 degrees (CLOCKWISE).
+        /// </summary>
+        /// <param name="src">Src colors.</param>
+        /// <param name="dst">Dst colors.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        void Rotate90CW (Color32[] src, Color32[] dst, int height, int width)
+        {
+            int i = 0;
+            for (int x = height - 1; x >= 0; x--) {
+                for (int y = 0; y < width; y++) {
+                    dst [i] = src [x + y * height];
+                    i++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Rotates 90 degrees (COUNTERCLOCKWISE).
+        /// </summary>
+        /// <param name="src">Src colors.</param>
+        /// <param name="dst">Dst colors.</param>
+        /// <param name="height">Height.</param>
+        /// <param name="width">Width.</param>
+        void Rotate90CCW (Color32[] src, Color32[] dst, int width, int height)
+        {
+            int i = 0;
+            for (int x = 0; x < width; x++) {
+                for (int y = height - 1; y >= 0; y--) {
+                    dst [i] = src [x + y * width];
+                    i++;
+                }
             }
         }
     }

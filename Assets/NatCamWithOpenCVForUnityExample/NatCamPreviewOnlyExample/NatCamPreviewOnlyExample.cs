@@ -55,6 +55,9 @@ namespace NatCamWithOpenCVForUnityExample
         float onFrameFPS = 0;
         float drawFPS = 0;
 
+        /// <summary>
+        /// The FPS monitor.
+        /// </summary>
         FpsMonitor fpsMonitor;
 
         public override void Start () 
@@ -76,8 +79,11 @@ namespace NatCamWithOpenCVForUnityExample
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
         }
 
-        public override void OnStart () {
-
+        /// <summary>
+        /// Method called when the camera preview starts
+        /// </summary>
+        public override void OnStart ()
+        {
             base.OnStart ();
 
             // Scale the panel to match aspect ratios
@@ -144,8 +150,11 @@ namespace NatCamWithOpenCVForUnityExample
             Debug.Log ("OnStart (): " + NatCam.Preview.width + " " + NatCam.Preview.height);
         }
 
-        public override void OnFrame () {
-
+        /// <summary>
+        /// Method called on every frame that the camera preview updates
+        /// </summary>
+        public override void OnFrame ()
+        {
             onFrameCount++;
 
             if (imageProcessingType == ImageProcessingType.None) {
@@ -182,8 +191,9 @@ namespace NatCamWithOpenCVForUnityExample
             }
         }
 
-        void Update(){
-
+        // Update is called once per frame
+        void Update()
+        {
             updateCount++;
             elapsed += Time.deltaTime;
             if (elapsed >= 1f) {
@@ -236,6 +246,14 @@ namespace NatCamWithOpenCVForUnityExample
             didUpdateThisFrame = false;
         }
 
+        /// <summary>
+        /// Process the image.
+        /// </summary>
+        /// <param name="buffer">Bytes.</param>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        /// <param name="size">Size.</param>
+        /// <param name="imageProcessingType">ImageProcessingType.</param>
         private void ProcessImage (Byte[] buffer, int width, int height, int size, ImageProcessingType imageProcessingType = ImageProcessingType.None)
         {
             switch (imageProcessingType) {
