@@ -162,7 +162,7 @@ namespace NatCamWithOpenCVForUnityExample
             } else {
 
                 // Create the managed buffer
-                buffer = buffer ?? new byte[size];
+                buffer = buffer ?? new byte[NatCam.Preview.width * NatCam.Preview.height * 4];
 
                 // Capture the current frame
                 if (!NatCam.CaptureFrame (buffer)) return;
@@ -170,12 +170,12 @@ namespace NatCamWithOpenCVForUnityExample
                 didUpdateThisFrame = true;
 
                 // Size checking
-                if (texture && (texture.width != width || texture.height != height)) {
+                if (texture && (texture.width != NatCam.Preview.width || texture.height != NatCam.Preview.height)) {
                     Texture2D.Destroy (texture);
                     texture = null;
                 }
                 // Create the texture
-                texture = texture ?? new Texture2D (width, height, textureFormat, false, false);
+                texture = texture ?? new Texture2D (NatCam.Preview.width, NatCam.Preview.height, textureFormat, false, false);
             }
         }
 
