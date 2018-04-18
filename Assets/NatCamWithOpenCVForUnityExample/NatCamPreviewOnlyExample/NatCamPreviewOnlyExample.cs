@@ -58,9 +58,12 @@ namespace NatCamWithOpenCVForUnityExample
 
         public override void Start () 
         {
-            base.Start ();
-
+            // Set the active camera
+			NatCam.Camera = useFrontCamera ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            // Set the camera framerate
             NatCam.Camera.SetFramerate (requestedFPS);
+            // Perform remaining camera setup
+            base.Start ();
 
             fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
