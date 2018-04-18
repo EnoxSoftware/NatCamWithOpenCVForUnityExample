@@ -17,14 +17,14 @@ Demo
 
 
 ## Setup
-1. Download latast release unitypackage. [NatCamWithOpenCVForUnityExample.unitypackage](https://github.com/EnoxSoftware/NatCamWithOpenCVForUnityExample/releases)
+1. Download the latest release unitypackage. [NatCamWithOpenCVForUnityExample.unitypackage](https://github.com/EnoxSoftware/NatCamWithOpenCVForUnityExample/releases)
 1. Create a new project. (NatCamWithOpenCVForUnityExample)
 1. Import NatCam Pro.
 1. Import OpenCVForUnity.
-    * Setup the OpenCVForUnity. (Tools > OpenCV for Unity > Set Plugn Inport Settings)
+    * Setup the OpenCVForUnity. (Tools > OpenCV for Unity > Set Plugin Import Settings)
 1. Import the NatCamWithOpenCVForUnityExample.unitypackage.
 1. Add the "Assets/NatCamWithOpenCVForUnityExample/*.unity" files to the "Scenes In Build" list in the "Build Settings" window.
-1. Build and Deploy to Androd and iOS.
+1. Build and Deploy to Android and iOS.
 
 
 ## ScreenShot
