@@ -1,9 +1,5 @@
-﻿// Make sure to uncomment '#define OPENCV_API' in NatCam (Assets>NatCam>Pro>Plugins>Managed>NatCam.cs) and in OpenCVBehaviour
-//#define OPENCV_API // Uncomment this to run this example properly
-
-using UnityEngine;
+﻿using UnityEngine;
 using NatCamU.Core;
-using NatCamU.Pro;
 using System.Collections.Generic;
 using System;
 using UnityEngine.UI;
@@ -62,9 +58,12 @@ namespace NatCamWithOpenCVForUnityExample
 
         public override void Start () 
         {
-            base.Start ();
-
+            // Set the active camera
+			NatCam.Camera = useFrontCamera ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            // Set the camera framerate
             NatCam.Camera.SetFramerate (requestedFPS);
+            // Perform remaining camera setup
+            base.Start ();
 
             fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
@@ -161,33 +160,22 @@ namespace NatCamWithOpenCVForUnityExample
                 didUpdateThisFrame = true;
                 preview.texture = NatCam.Preview;
             } else {
-                // Declare buffer properties
-                IntPtr handle;
-                int width, height, size;
-                // Read the preview buffer
-                if (!NatCam.PreviewBuffer (out handle, out width, out height, out size))
-                    return;
+
+                // Create the managed buffer
+                buffer = buffer ?? new byte[NatCam.Preview.width * NatCam.Preview.height * 4];
+
+                // Capture the current frame
+                if (!NatCam.CaptureFrame (buffer)) return;
 
                 didUpdateThisFrame = true;
 
                 // Size checking
-                if (buffer != null && buffer.Length != size) {
-                    buffer = null;
-                }
-                // Create the managed buffer
-                buffer = buffer ?? new byte[size];
-
-                // Copy the pixel data from the native buffer into our managed bufffer
-                // This is faster than accessing each byte using Marshal.ReadByte
-                Marshal.Copy(handle, buffer, 0, size);
-
-                // Size checking
-                if (texture && (texture.width != width || texture.height != height)) {
+                if (texture && (texture.width != NatCam.Preview.width || texture.height != NatCam.Preview.height)) {
                     Texture2D.Destroy (texture);
                     texture = null;
                 }
                 // Create the texture
-                texture = texture ?? new Texture2D (width, height, textureFormat, false, false);
+                texture = texture ?? new Texture2D (NatCam.Preview.width, NatCam.Preview.height, textureFormat, false, false);
             }
         }
 

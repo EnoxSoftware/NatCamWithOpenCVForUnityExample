@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using NatCamU.Core;
-using NatCamU.Pro;
 using System.Collections.Generic;
 using System;
 using UnityEngine.UI;
@@ -21,7 +20,7 @@ namespace NatCamWithOpenCVForUnityExample
     {
         public enum MatCaptureMethod
         {
-            NatCam_PreviewBuffer,
+            NatCam_CaptureFrame,
             BlitWithReadPixels,
             OpenCVForUnity_LowLevelTextureToMat,
             Graphics_CopyTexture,
@@ -35,7 +34,7 @@ namespace NatCamWithOpenCVForUnityExample
         }
 
         [Header("OpenCV")]
-        public MatCaptureMethod matCaptureMethod = MatCaptureMethod.NatCam_PreviewBuffer;
+        public MatCaptureMethod matCaptureMethod = MatCaptureMethod.NatCam_CaptureFrame;
         public Dropdown matCaptureMethodDropdown; 
         public ImageProcessingType imageProcessingType = ImageProcessingType.None;
         public Dropdown imageProcessingTypeDropdown; 
@@ -62,6 +61,7 @@ namespace NatCamWithOpenCVForUnityExample
 
         private Mat matrix;
         private Mat grayMatrix;
+        private byte[] pixelBuffer;
         private Texture2D texture;
         private const TextureFormat textureFormat =
         #if UNITY_IOS && !UNITY_EDITOR 
@@ -72,9 +72,12 @@ namespace NatCamWithOpenCVForUnityExample
 
         public override void Start () 
         {
-            base.Start ();
-
+            // Set the active camera
+			NatCam.Camera = useFrontCamera ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            // Set the camera framerate
             NatCam.Camera.SetFramerate (requestedFPS);
+            // Perform remaining camera setup
+            base.Start ();
 
             fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
@@ -97,20 +100,22 @@ namespace NatCamWithOpenCVForUnityExample
         {
             // Initialize the texture
             // NatCam.PreviewMatrix(ref matrix);
-            IntPtr ptr; int width, height, size;
-            if (!NatCam.PreviewBuffer (out ptr, out width, out height, out size)) {
-                if (fpsMonitor != null) {
-                    fpsMonitor.consoleText = "OnStart (): NatCam.PreviewBuffer() returned false.";
-                }
-                return;
-            }
-            if (matrix != null && (matrix.cols() != width || matrix.rows() != height)) {
+
+            // Create pixel buffer
+            pixelBuffer = new byte[NatCam.Preview.width * NatCam.Preview.height * 4];
+
+            // Get the preview data
+            NatCam.CaptureFrame(pixelBuffer, true);
+
+            // Create preview matrix
+            if (matrix != null && (matrix.cols() != NatCam.Preview.width || matrix.rows() != NatCam.Preview.height)) {
                 matrix.Dispose ();
                 matrix = null;
             }
-            matrix = matrix ?? new Mat(height, width, CvType.CV_8UC4);
-            Utils.copyToMat(ptr, matrix);
+            matrix = matrix ?? new Mat(NatCam.Preview.height, NatCam.Preview.width, CvType.CV_8UC4);
+            matrix.put(0, 0, pixelBuffer);
 
+            // Create display texture
             if (texture && (texture.width != matrix.cols() || texture.height != matrix.rows())) {
                 Texture2D.Destroy (texture);
                 texture = null;
@@ -192,30 +197,19 @@ namespace NatCamWithOpenCVForUnityExample
         /// <summary>
         /// Gets the current camera preview frame that converted to the correct direction in OpenCV Matrix format.
         /// </summary>
-        private Mat GetMat (MatCaptureMethod matCaptureMethod = MatCaptureMethod.NatCam_PreviewBuffer)
+        private Mat GetMat (MatCaptureMethod matCaptureMethod = MatCaptureMethod.NatCam_CaptureFrame)
         {
             if (matrix.cols () != NatCam.Preview.width || matrix.rows () != NatCam.Preview.height)
                 return null;
 
             switch (matCaptureMethod) {
             default:
-            case MatCaptureMethod.NatCam_PreviewBuffer:
-
-                // Get the current preview frame as an OpenCV matrix
-                // NatCam.PreviewMatrix(ref matrix);
-                IntPtr ptr; int width, height, size;
-                if (!NatCam.PreviewBuffer (out ptr, out width, out height, out size)) {
-                    return null;
-                }
-                if (matrix != null && (matrix.cols() != width || matrix.rows() != height)) {
-                    matrix.Dispose ();
-                    matrix = null;
-                }
-                matrix = matrix ?? new Mat(height, width, CvType.CV_8UC4);
-                Utils.copyToMat(ptr, matrix);
-
-                // OpenCV uses an inverted coordinate system. Y-0 is the top of the image, whereas in OpenGL (and so NatCam), Y-0 is the bottom of the image.
-                Core.flip (matrix, matrix, 0);
+            case MatCaptureMethod.NatCam_CaptureFrame:
+                // Get the preview data
+                // Set `flip` flag to true because OpenCV uses inverted Y-coordinate system
+                NatCam.CaptureFrame(pixelBuffer, true);
+                
+                matrix.put(0, 0, pixelBuffer);
 
                 break;
             case MatCaptureMethod.BlitWithReadPixels:
