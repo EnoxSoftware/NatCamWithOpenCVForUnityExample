@@ -59,16 +59,11 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         FpsMonitor fpsMonitor;
 
-        private Mat matrix;
-        private Mat grayMatrix;
-        private byte[] pixelBuffer;
-        private Texture2D texture;
-        private const TextureFormat textureFormat =
-        #if UNITY_IOS && !UNITY_EDITOR 
-        TextureFormat.BGRA32;
-        #else
-        TextureFormat.RGBA32;
-        #endif
+        Mat matrix;
+        Mat grayMatrix;
+        byte[] pixelBuffer;
+        Texture2D texture;
+        const TextureFormat textureFormat = TextureFormat.RGBA32;
 
         public override void Start () 
         {
@@ -267,11 +262,7 @@ namespace NatCamWithOpenCVForUnityExample
             switch (imageProcessingType) {
             case ImageProcessingType.DrawLine:
                 // Draw a diagonal line on our image
-                #if UNITY_IOS && !UNITY_EDITOR 
-                Imgproc.line (matrix, new Point (0, 0), new Point (matrix.cols (), matrix.rows ()), new Scalar (0, 0, 255, 255), 4);
-                #else
                 Imgproc.line (matrix, new Point (0, 0), new Point (matrix.cols (), matrix.rows ()), new Scalar (255, 0, 0, 255), 4);
-                #endif
 
                 break;
             case ImageProcessingType.ConvertToGray:
@@ -281,14 +272,9 @@ namespace NatCamWithOpenCVForUnityExample
                     grayMatrix = null;
                 }
                 grayMatrix = grayMatrix ?? new Mat(matrix.height(), matrix.width(), CvType.CV_8UC1);
-                
-                #if UNITY_IOS && !UNITY_EDITOR 
-                Imgproc.cvtColor (matrix, grayMatrix, Imgproc.COLOR_BGRA2GRAY);
-                Imgproc.cvtColor (grayMatrix, matrix, Imgproc.COLOR_GRAY2BGRA);
-                #else
+
                 Imgproc.cvtColor (matrix, grayMatrix, Imgproc.COLOR_RGBA2GRAY);
                 Imgproc.cvtColor (grayMatrix, matrix, Imgproc.COLOR_GRAY2RGBA);
-                #endif
 
                 break;
             }

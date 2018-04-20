@@ -1954,7 +1954,6 @@ MonoBehaviour:
   photoResolution:
     width: 1920
     height: 1080
-  verbose: 1
   imageProcessingType: 0
   imageProcessingTypeDropdown: {fileID: 1213656990}
   requestedFPS: 30

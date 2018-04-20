@@ -33,14 +33,9 @@ namespace NatCamWithOpenCVForUnityExample
         public AspectRatioFitter aspectFitter;
 
         bool didUpdateThisFrame = false;
-        private Texture2D texture;
-        private byte[] buffer;
-        const TextureFormat textureFormat =
-        #if UNITY_IOS && !UNITY_EDITOR
-        TextureFormat.BGRA32;
-        #else
-        TextureFormat.RGBA32;
-        #endif
+        Texture2D texture;
+        byte[] buffer;
+        const TextureFormat textureFormat = TextureFormat.RGBA32;
 
         int updateCount = 0;
         int onFrameCount = 0;
@@ -125,7 +120,7 @@ namespace NatCamWithOpenCVForUnityExample
                     Debug.Log(key + ": " + cameraProps[key]);
                 }
 
-                if (fpsMonitor != null && verbose){
+                if (fpsMonitor != null){
                     fpsMonitor.boxWidth = 200;
                     fpsMonitor.boxHeight = 620;
                     fpsMonitor.LocateGUI();
@@ -139,7 +134,7 @@ namespace NatCamWithOpenCVForUnityExample
             catch(Exception e)
             {
                 Debug.Log ("Exception: " + e);
-                if (fpsMonitor != null && verbose) {
+                if (fpsMonitor != null) {
                     fpsMonitor.consoleText = "Exception: " + e;
                 }
             }
@@ -161,13 +156,16 @@ namespace NatCamWithOpenCVForUnityExample
                 preview.texture = NatCam.Preview;
             } else {
 
+                // Size checking
+                if (buffer != null && buffer.Length != NatCam.Preview.width * NatCam.Preview.height * 4) {
+                    buffer = null;
+                }
+
                 // Create the managed buffer
                 buffer = buffer ?? new byte[NatCam.Preview.width * NatCam.Preview.height * 4];
 
                 // Capture the current frame
                 if (!NatCam.CaptureFrame (buffer)) return;
-
-                didUpdateThisFrame = true;
 
                 // Size checking
                 if (texture && (texture.width != NatCam.Preview.width || texture.height != NatCam.Preview.height)) {
@@ -176,6 +174,8 @@ namespace NatCamWithOpenCVForUnityExample
                 }
                 // Create the texture
                 texture = texture ?? new Texture2D (NatCam.Preview.width, NatCam.Preview.height, textureFormat, false, false);
+
+                didUpdateThisFrame = true;
             }
         }
 
@@ -213,7 +213,7 @@ namespace NatCamWithOpenCVForUnityExample
                     
                 } else {
                     
-                    if (texture.width * texture.height * 4 != buffer.Length)
+                    if (texture == null || buffer == null || texture.width * texture.height * 4 != buffer.Length)
                         return;
 
                     // Process
@@ -257,11 +257,7 @@ namespace NatCamWithOpenCVForUnityExample
                             y = height-1;
                         int p = (x * 4) + (y * width * 4);
                         // Set pixels in the buffer
-                        #if UNITY_IOS && !UNITY_EDITOR 
-                        buffer[p] = 0; buffer[p + 1] = 0; buffer[p + 2] = 255; buffer[p + 3] = 255;
-                        #else
                         buffer[p] = 255; buffer[p + 1] = 0; buffer[p + 2] = 0; buffer[p + 3] = 255;
-                        #endif
                     }
                 }
 

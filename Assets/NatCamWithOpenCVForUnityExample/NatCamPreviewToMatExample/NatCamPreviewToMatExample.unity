@@ -210,7 +210,7 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: 'Method: PreviewBuffer'
+    - m_Text: 'Method: CaptureFrame'
       m_Image: {fileID: 0}
     - m_Text: 'Method: BlitWithReadPixels'
       m_Image: {fileID: 0}
@@ -2497,7 +2497,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Method: PreviewBuffer'
+  m_Text: 'Method: CaptureFrame'
 --- !u!222 &1332287264
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2642,7 +2642,6 @@ MonoBehaviour:
   photoResolution:
     width: 1920
     height: 1080
-  verbose: 1
   matCaptureMethod: 0
   matCaptureMethodDropdown: {fileID: 67966319}
   imageProcessingType: 0
