@@ -15,7 +15,7 @@ namespace NatCamWithOpenCVForUnityExample
     /// NatCamPreview Only Example
     /// An example of displaying the preview frame of camera only using NatCam.
     /// </summary>
-    public class NatCamPreviewOnlyExample : NatCamBehaviour
+    public class NatCamPreviewOnlyExample : MonoBehaviour
     {
         public enum ImageProcessingType
         {
@@ -24,13 +24,18 @@ namespace NatCamWithOpenCVForUnityExample
             ConvertToGray,
         }
 
+        [Header("Camera")]
+        public bool useFrontCamera;
+
+        [Header("Preview")]
+        public RawImage preview;
+        public CameraResolution previewResolution = CameraResolution._1280x720;
+        public int requestedFPS = 30;
+        public AspectRatioFitter aspectFitter;
+
         [Header("ImageProcessing")]
         public ImageProcessingType imageProcessingType = ImageProcessingType.None;
         public Dropdown imageProcessingTypeDropdown; 
-
-        [Header("Preview")]
-        public int requestedFPS = 30;
-        public AspectRatioFitter aspectFitter;
 
         bool didUpdateThisFrame = false;
         Texture2D texture;
@@ -51,14 +56,35 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         FpsMonitor fpsMonitor;
 
-        public override void Start () 
+        public virtual void Start () 
         {
+            // Load global camera benchmark settings.
+            int width, height, fps; 
+            NatCamWithOpenCVForUnityExample.GetCameraResolution (out width, out height);
+            NatCamWithOpenCVForUnityExample.GetCameraFps (out fps);
+            previewResolution = new NatCamU.Core.CameraResolution(width, height);
+            requestedFPS = fps;
+
             // Set the active camera
-			NatCam.Camera = useFrontCamera ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            NatCam.Camera = useFrontCamera ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+
+            // Null checking
+            if (!NatCam.Camera) {
+                Debug.LogError("Camera is null. Consider using "+(useFrontCamera ? "rear" : "front")+" camera");
+                return;
+            }
+            if (!preview) {
+                Debug.LogError("Preview RawImage has not been set");
+                return;
+            }
+
+            // Set the camera's preview resolution
+            NatCam.Camera.PreviewResolution = previewResolution;
             // Set the camera framerate
-            NatCam.Camera.SetFramerate (requestedFPS);
-            // Perform remaining camera setup
-            base.Start ();
+            NatCam.Camera.Framerate = requestedFPS;
+            NatCam.Play();
+            NatCam.OnStart += OnStart;
+            NatCam.OnFrame += OnFrame;
 
             fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
@@ -76,9 +102,10 @@ namespace NatCamWithOpenCVForUnityExample
         /// <summary>
         /// Method called when the camera preview starts
         /// </summary>
-        public override void OnStart ()
+        public virtual void OnStart ()
         {
-            base.OnStart ();
+            // Set the preview RawImage texture once the preview starts
+            preview.texture = NatCam.Preview;
 
             // Scale the panel to match aspect ratios
             aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
@@ -147,7 +174,7 @@ namespace NatCamWithOpenCVForUnityExample
         /// <summary>
         /// Method called on every frame that the camera preview updates
         /// </summary>
-        public override void OnFrame ()
+        public virtual void OnFrame ()
         {
             onFrameCount++;
 
@@ -344,7 +371,9 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         public void OnChangeCameraButtonClick ()
         {
-            SwitchCamera ();
+            // Switch camera
+            if (NatCam.Camera.IsFrontFacing) NatCam.Camera = DeviceCamera.RearCamera;
+            else NatCam.Camera = DeviceCamera.FrontCamera;
         }
 
         /// <summary>

@@ -23,12 +23,12 @@ namespace NatCamWithOpenCVForUnityExample
         /// <summary>
         /// Set the requested width of the camera device.
         /// </summary>
-        public int requestedWidth = 640;
+        public int requestedWidth = 1280;
         
         /// <summary>
         /// Set the requested height of the camera device.
         /// </summary>
-        public int requestedHeight = 480;
+        public int requestedHeight = 720;
 
         /// <summary>
         /// Set the requested fps of the camera device.
@@ -130,6 +130,14 @@ namespace NatCamWithOpenCVForUnityExample
         // Use this for initialization
         void Start ()
         {
+            // Load global camera benchmark settings.
+            int width, height, fps; 
+            NatCamWithOpenCVForUnityExample.GetCameraResolution (out width, out height);
+            NatCamWithOpenCVForUnityExample.GetCameraFps (out fps);
+            requestedWidth = width;
+            requestedHeight = height;
+            requestedFPS = fps;
+
             fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
                 fpsMonitor.Add ("Name", "WebCamTextureOnlyExample");

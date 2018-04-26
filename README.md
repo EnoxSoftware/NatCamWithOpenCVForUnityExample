@@ -2,12 +2,14 @@
 
 An example of a benchmark test integrating NatCam and OpenCVForUnity.
 (Comparison between WebCamTexture and NatCam preview frame)
+An example of the native sharing and save to the camera roll using NatShare.
 
 ## Environment
 * Anddroid (Pixel, Nexus 7, Zenfone, SC-04E) / iOS (iPhone8, iPhone6)
 * Unity >= 5.6.1f1
 * Scripting backend MONO / IL2CPP
 * NatCam - WebCam API 2.0f1 ([https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154](https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154))  
+* NatShare-API 1.0 ([https://github.com/olokobayusuf/NatShare-API](https://github.com/olokobayusuf/NatShare-API))  
 * OpenCV for Unity 2.2.8 ([https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088))  
 
 
@@ -19,7 +21,8 @@ Demo
 ## Setup
 1. Download the latest release unitypackage. [NatCamWithOpenCVForUnityExample.unitypackage](https://github.com/EnoxSoftware/NatCamWithOpenCVForUnityExample/releases)
 1. Create a new project. (NatCamWithOpenCVForUnityExample)
-1. Import NatCam Pro.
+1. Import NatCam.
+1. Import NatShare.
 1. Import OpenCVForUnity.
     * Setup the OpenCVForUnity. (Tools > OpenCV for Unity > Set Plugin Import Settings)
 1. Import the NatCamWithOpenCVForUnityExample.unitypackage.
@@ -30,5 +33,5 @@ Demo
 ## ScreenShot
 ![screenshot01.jpg](screenshot01.jpg) 
 ![screenshot02.jpg](screenshot02.jpg) 
-
+![screenshot03.jpg](screenshot03.jpg) 
 

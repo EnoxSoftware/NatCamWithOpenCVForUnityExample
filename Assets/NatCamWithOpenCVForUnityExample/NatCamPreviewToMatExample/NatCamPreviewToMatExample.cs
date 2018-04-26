@@ -16,11 +16,12 @@ namespace NatCamWithOpenCVForUnityExample
     /// NatCamPreview To Mat Example
     /// An example of converting a NatCam preview image to OpenCV's Mat format.
     /// </summary>
-    public class NatCamPreviewToMatExample : NatCamBehaviour
+    public class NatCamPreviewToMatExample : MonoBehaviour
     {
         public enum MatCaptureMethod
         {
             NatCam_CaptureFrame,
+            NatCam_CaptureFrame_OpenCVFlip,
             BlitWithReadPixels,
             OpenCVForUnity_LowLevelTextureToMat,
             Graphics_CopyTexture,
@@ -33,15 +34,31 @@ namespace NatCamWithOpenCVForUnityExample
             ConvertToGray,
         }
 
+        // An image flipping method for returning a display image from the OpenCV coordinate system (Y - 0 is the top of the image) to the OpenGL coordinate system (Y - 0 is the bottom of the image).
+        public enum ImageFlippingMethod
+        {
+            OpenCVForUnity_Flip,
+            Shader,
+        }
+
+        [Header("Camera")]
+        public bool useFrontCamera;
+
+        [Header("Preview")]
+        public RawImage preview;
+        public CameraResolution previewResolution = CameraResolution._1280x720;
+        public int requestedFPS = 30;
+        public AspectRatioFitter aspectFitter;
+        public ImageFlippingMethod imageFlippingMethod = ImageFlippingMethod.OpenCVForUnity_Flip;
+        public Dropdown imageFlippingMethodDropdown; 
+        Material originalMaterial;
+        Material viewMaterial;
+
         [Header("OpenCV")]
         public MatCaptureMethod matCaptureMethod = MatCaptureMethod.NatCam_CaptureFrame;
         public Dropdown matCaptureMethodDropdown; 
         public ImageProcessingType imageProcessingType = ImageProcessingType.None;
         public Dropdown imageProcessingTypeDropdown; 
-
-        [Header("Preview")]
-        public int requestedFPS = 30;
-        public AspectRatioFitter aspectFitter;
 
         bool didUpdateThisFrame = false;
 
@@ -65,14 +82,37 @@ namespace NatCamWithOpenCVForUnityExample
         Texture2D texture;
         const TextureFormat textureFormat = TextureFormat.RGBA32;
 
-        public override void Start () 
+        public virtual void Start () 
         {
+            // Load global camera benchmark settings.
+            int width, height, fps; 
+            NatCamWithOpenCVForUnityExample.GetCameraResolution (out width, out height);
+            NatCamWithOpenCVForUnityExample.GetCameraFps (out fps);
+            previewResolution = new NatCamU.Core.CameraResolution(width, height);
+            requestedFPS = fps;
+
             // Set the active camera
-			NatCam.Camera = useFrontCamera ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            NatCam.Camera = useFrontCamera ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+
+            // Null checking
+            if (!NatCam.Camera) {
+                Debug.LogError("Camera is null. Consider using "+(useFrontCamera ? "rear" : "front")+" camera");
+                return;
+            }
+            if (!preview) {
+                Debug.LogError("Preview RawImage has not been set");
+                return;
+            }
+                
+            SetMaterials ();
+
+            // Set the camera's preview resolution
+            NatCam.Camera.PreviewResolution = previewResolution;
             // Set the camera framerate
-            NatCam.Camera.SetFramerate (requestedFPS);
-            // Perform remaining camera setup
-            base.Start ();
+            NatCam.Camera.Framerate = requestedFPS;
+            NatCam.Play();
+            NatCam.OnStart += OnStart;
+            NatCam.OnFrame += OnFrame;
 
             fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
@@ -86,16 +126,14 @@ namespace NatCamWithOpenCVForUnityExample
                 
             matCaptureMethodDropdown.value = (int)matCaptureMethod;
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
+            imageFlippingMethodDropdown.value = (int)imageFlippingMethod;
         }
 
         /// <summary>
         /// Method called when the camera preview starts
         /// </summary>
-        public override void OnStart ()
+        public virtual void OnStart ()
         {
-            // Initialize the texture
-            // NatCam.PreviewMatrix(ref matrix);
-
             // Create pixel buffer
             pixelBuffer = new byte[NatCam.Preview.width * NatCam.Preview.height * 4];
 
@@ -129,7 +167,7 @@ namespace NatCamWithOpenCVForUnityExample
         /// <summary>
         /// Method called on every frame that the camera preview updates
         /// </summary>
-        public override void OnFrame ()
+        public virtual void OnFrame ()
         {
             onFrameCount++;
 
@@ -139,7 +177,6 @@ namespace NatCamWithOpenCVForUnityExample
         // Update is called once per frame
         void Update()
         {
-
             updateCount++;
             elapsed += Time.deltaTime;
             if (elapsed >= 1f) {
@@ -178,8 +215,17 @@ namespace NatCamWithOpenCVForUnityExample
                     //Imgproc.putText (matrix, "W:" + matrix.width () + " H:" + matrix.height () + " SO:" + Screen.orientation, new Point (5, matrix.rows () - 10), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
                     //Imgproc.putText (matrix, "updateFPS:" + updateFPS.ToString("F1") + " onFrameFPS:" + onFrameFPS.ToString("F1") + " drawFPS:" + drawFPS.ToString("F1"), new Point (5, matrix.rows () - 50), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
 
-                    // Restore the coordinate system of the image.
-                    Utils.fastMatToTexture2D (matrix, texture , true, 0, false);
+                    switch (imageFlippingMethod) {
+                    default:
+                    case ImageFlippingMethod.OpenCVForUnity_Flip:
+                        // Restore the coordinate system of the image by OpenCV's Flip function.
+                        Utils.fastMatToTexture2D (matrix, texture, true, 0, false);
+                        break;
+                    case ImageFlippingMethod.Shader:
+                        // Restore the coordinate system of the image by Shader. (use GPU)
+                        Utils.fastMatToTexture2D (matrix, texture, false, 0, false);
+                        break;
+                    }
                 }
             }
         }
@@ -203,8 +249,18 @@ namespace NatCamWithOpenCVForUnityExample
                 // Get the preview data
                 // Set `flip` flag to true because OpenCV uses inverted Y-coordinate system
                 NatCam.CaptureFrame(pixelBuffer, true);
-                
+
                 matrix.put(0, 0, pixelBuffer);
+
+                break;
+            case MatCaptureMethod.NatCam_CaptureFrame_OpenCVFlip:
+                // Get the preview data
+                NatCam.CaptureFrame(pixelBuffer, false);
+
+                matrix.put(0, 0, pixelBuffer);
+
+                // OpenCV uses an inverted coordinate system. Y-0 is the top of the image, whereas in OpenGL (and so NatCam), Y-0 is the bottom of the image.
+                Core.flip (matrix, matrix, 0);
 
                 break;
             case MatCaptureMethod.BlitWithReadPixels:
@@ -280,6 +336,15 @@ namespace NatCamWithOpenCVForUnityExample
             }
         }
 
+        private void SetMaterials () {
+            //Cache the original material
+            originalMaterial = preview.materialForRendering;
+            //Create the view material
+            viewMaterial = new Material(Shader.Find("Hidden/NatCamWithOpenCVForUnity/ImageFlipShader"));
+            //Set the raw image material
+            preview.material = viewMaterial;
+        }
+
         /// <summary>
         /// Releases all resource.
         /// </summary>
@@ -301,6 +366,11 @@ namespace NatCamWithOpenCVForUnityExample
             }
 
             didUpdateThisFrame = false;
+
+            //Reset material
+            if (preview) preview.material = originalMaterial;
+            //Destroy view material
+            Destroy(viewMaterial);
         }
 
         /// <summary>
@@ -352,7 +422,9 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         public void OnChangeCameraButtonClick ()
         {
-            SwitchCamera ();
+            // Switch camera
+            if (NatCam.Camera.IsFrontFacing) NatCam.Camera = DeviceCamera.RearCamera;
+            else NatCam.Camera = DeviceCamera.FrontCamera;
         }
 
         /// <summary>
@@ -375,6 +447,22 @@ namespace NatCamWithOpenCVForUnityExample
         {
             if ((int)imageProcessingType != result) {
                 imageProcessingType = (ImageProcessingType)result;
+            }
+        }
+
+        /// <summary>
+        /// Raises the image flipping method dropdown value changed event.
+        /// </summary>
+        public void OnImageFlippingMethodDropdownValueChanged (int result)
+        {
+            if ((int)imageFlippingMethod != result) {
+                imageFlippingMethod = (ImageFlippingMethod)result;
+            }
+
+            if (imageFlippingMethod == ImageFlippingMethod.Shader) {
+                preview.materialForRendering.SetVector("_Mirror", new Vector2(0f, 1f));
+            } else {
+                preview.materialForRendering.SetVector("_Mirror", Vector2.zero);
             }
         }
     }

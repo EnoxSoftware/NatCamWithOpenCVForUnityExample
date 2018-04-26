@@ -1946,18 +1946,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de64702992c67842b18b623410d3b42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  preview: {fileID: 231857593}
   useFrontCamera: 0
+  preview: {fileID: 231857593}
   previewResolution:
     width: 1280
     height: 720
-  photoResolution:
-    width: 1920
-    height: 1080
-  imageProcessingType: 0
-  imageProcessingTypeDropdown: {fileID: 1213656990}
   requestedFPS: 30
   aspectFitter: {fileID: 231857596}
+  imageProcessingType: 0
+  imageProcessingTypeDropdown: {fileID: 1213656990}
 --- !u!114 &1302788348
 MonoBehaviour:
   m_ObjectHideFlags: 0
