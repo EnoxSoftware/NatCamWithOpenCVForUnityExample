@@ -4,7 +4,7 @@ An example of a benchmark test integrating NatCam and OpenCVForUnity. (Compariso
 An example of the native sharing and save to the camera roll using NatShare.
 
 ## Benchmark
-![benchmark.jpg.jpg](benchmark.jpg.jpg) 
+![benchmark.jpg](benchmark.jpg) 
 
 
 ## Environment
