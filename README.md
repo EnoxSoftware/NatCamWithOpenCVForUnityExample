@@ -1,8 +1,11 @@
 # NatCam With OpenCVForUnity Example
 
-An example of a benchmark test integrating NatCam and OpenCVForUnity.
-(Comparison between WebCamTexture and NatCam preview frame)
+An example of a benchmark test integrating NatCam and OpenCVForUnity. (Comparison between WebCamTexture and NatCam preview frame)  
 An example of the native sharing and save to the camera roll using NatShare.
+
+## Benchmark
+![benchmark.jpg.jpg](benchmark.jpg.jpg) 
+
 
 ## Environment
 * Anddroid (Pixel, Nexus 7, Zenfone, SC-04E) / iOS (iPhone8, iPhone6)
