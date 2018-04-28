@@ -1,7 +1,8 @@
 # NatCam With OpenCVForUnity Example
 
-An example of a benchmark test integrating NatCam and OpenCVForUnity. (Comparison between WebCamTexture and NatCam preview frame)  
-An example of the native sharing and save to the camera roll using NatShare.
+* An example of a benchmark test integrating NatCam and OpenCVForUnity. (Comparison between WebCamTexture and NatCam API)  
+* An example of replacing WebCamTextureToMatHelper with NatCamPreviewToMatHelper.
+* An example of native sharing and save to the camera roll using NatShare API.
 
 ## Benchmark
 ![benchmark.jpg](benchmark.jpg) 
