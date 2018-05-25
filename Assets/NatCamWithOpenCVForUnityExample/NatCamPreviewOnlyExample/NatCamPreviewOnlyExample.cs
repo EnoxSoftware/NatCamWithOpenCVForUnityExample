@@ -58,6 +58,17 @@ namespace NatCamWithOpenCVForUnityExample
 
         public virtual void Start () 
         {
+            fpsMonitor = GetComponent<FpsMonitor> ();
+
+            if (!NatCam.Implementation.HasPermissions) {
+                Debug.LogError ("NatCam.Implementation.HasPermissions == false");
+
+                if (fpsMonitor != null)
+                    fpsMonitor.consoleText = "NatCam.Implementation.HasPermissions == false";
+
+                return;
+            }
+
             // Load global camera benchmark settings.
             int width, height, fps; 
             NatCamWithOpenCVForUnityExample.GetCameraResolution (out width, out height);
@@ -86,7 +97,6 @@ namespace NatCamWithOpenCVForUnityExample
             NatCam.OnStart += OnStart;
             NatCam.OnFrame += OnFrame;
 
-            fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
                 fpsMonitor.Add ("Name", "NatCamPreviewOnlyExample");
                 fpsMonitor.Add ("onFrameFPS", onFrameFPS.ToString("F1"));

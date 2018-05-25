@@ -111,7 +111,7 @@ namespace NatCamWithOpenCVForUnityExample
                 matrix = null;
             }
             matrix = matrix ?? new Mat(NatCam.Preview.height, NatCam.Preview.width, CvType.CV_8UC4);
-            matrix.put(0, 0, pixelBuffer);
+            Utils.copyToMat (pixelBuffer, matrix);
 
             // Create display texture
             if (texture && (texture.width != matrix.cols() || texture.height != matrix.rows())) {
@@ -203,7 +203,7 @@ namespace NatCamWithOpenCVForUnityExample
             // Set `flip` flag to true because OpenCV uses inverted Y-coordinate system
             NatCam.CaptureFrame(pixelBuffer, true);
 
-            matrix.put(0, 0, pixelBuffer);
+            Utils.copyToMat (pixelBuffer, matrix);
 
             return matrix;
         }

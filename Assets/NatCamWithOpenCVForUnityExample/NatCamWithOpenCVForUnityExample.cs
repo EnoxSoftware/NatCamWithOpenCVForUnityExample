@@ -11,6 +11,7 @@ namespace NatCamWithOpenCVForUnityExample
 {
     public class NatCamWithOpenCVForUnityExample : MonoBehaviour
     {
+        public Text exampleTitle;
         public Text versionInfo;
         public ScrollRect scrollRect;
         static float verticalNormalizedPosition = 1f;
@@ -22,9 +23,16 @@ namespace NatCamWithOpenCVForUnityExample
         public Dropdown cameraFPSDropdown;
         static FPSPreset cameraFPS = FPSPreset._30;
 
+        void Awake () {
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = 60;
+        }
+
         // Use this for initialization
         void Start ()
         {
+            exampleTitle.text = "NatCamWithOpenCVForUnity Example " + Application.version;
+
             versionInfo.text = OpenCVForUnity.Core.NATIVE_LIBRARY_NAME + " " + OpenCVForUnity.Utils.getVersion () + " (" + OpenCVForUnity.Core.VERSION + ")";
             versionInfo.text += " / UnityEditor " + Application.unityVersion;
             versionInfo.text += " / ";

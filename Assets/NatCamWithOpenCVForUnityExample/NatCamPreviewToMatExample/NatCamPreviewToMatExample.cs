@@ -23,7 +23,6 @@ namespace NatCamWithOpenCVForUnityExample
             NatCam_CaptureFrame,
             NatCam_CaptureFrame_OpenCVFlip,
             BlitWithReadPixels,
-            OpenCVForUnity_LowLevelTextureToMat,
             Graphics_CopyTexture,
         }
 
@@ -84,6 +83,17 @@ namespace NatCamWithOpenCVForUnityExample
 
         public virtual void Start () 
         {
+            fpsMonitor = GetComponent<FpsMonitor> ();
+
+            if (!NatCam.Implementation.HasPermissions) {
+                Debug.LogError ("NatCam.Implementation.HasPermissions == false");
+
+                if (fpsMonitor != null)
+                    fpsMonitor.consoleText = "NatCam.Implementation.HasPermissions == false";
+
+                return;
+            }
+
             // Load global camera benchmark settings.
             int width, height, fps; 
             NatCamWithOpenCVForUnityExample.GetCameraResolution (out width, out height);
@@ -114,7 +124,6 @@ namespace NatCamWithOpenCVForUnityExample
             NatCam.OnStart += OnStart;
             NatCam.OnFrame += OnFrame;
 
-            fpsMonitor = GetComponent<FpsMonitor> ();
             if (fpsMonitor != null){
                 fpsMonitor.Add ("Name", "NatCamPreviewToMatExample");
                 fpsMonitor.Add ("onFrameFPS", onFrameFPS.ToString("F1"));
@@ -146,7 +155,7 @@ namespace NatCamWithOpenCVForUnityExample
                 matrix = null;
             }
             matrix = matrix ?? new Mat(NatCam.Preview.height, NatCam.Preview.width, CvType.CV_8UC4);
-            matrix.put(0, 0, pixelBuffer);
+            Utils.copyToMat (pixelBuffer, matrix);
 
             // Create display texture
             if (texture && (texture.width != matrix.cols() || texture.height != matrix.rows())) {
@@ -250,14 +259,14 @@ namespace NatCamWithOpenCVForUnityExample
                 // Set `flip` flag to true because OpenCV uses inverted Y-coordinate system
                 NatCam.CaptureFrame(pixelBuffer, true);
 
-                matrix.put(0, 0, pixelBuffer);
+                Utils.copyToMat (pixelBuffer, matrix);
 
                 break;
             case MatCaptureMethod.NatCam_CaptureFrame_OpenCVFlip:
                 // Get the preview data
                 NatCam.CaptureFrame(pixelBuffer, false);
 
-                matrix.put(0, 0, pixelBuffer);
+                Utils.copyToMat (pixelBuffer, matrix);
 
                 // OpenCV uses an inverted coordinate system. Y-0 is the top of the image, whereas in OpenGL (and so NatCam), Y-0 is the bottom of the image.
                 Core.flip (matrix, matrix, 0);
@@ -271,18 +280,10 @@ namespace NatCamWithOpenCVForUnityExample
                 // The texture2D's TextureFormat needs to be RGBA32(Unity5.5+), ARGB32, RGB24, RGBAFloat or RGBAHalf.
                 Utils.textureToTexture2D (NatCam.Preview, texture);
 
-                matrix.put (0, 0, texture.GetRawTextureData ());
+                Utils.copyToMat (texture.GetRawTextureData (), matrix);
 
                 // OpenCV uses an inverted coordinate system. Y-0 is the top of the image, whereas in OpenGL (and so NatCam), Y-0 is the bottom of the image.
                 Core.flip (matrix, matrix, 0);
-
-                break;
-            case MatCaptureMethod.OpenCVForUnity_LowLevelTextureToMat:
-
-                // When NatCam.PreviewMatrix function does not work properly. (Zenfone 2)
-                // Converts OpenCV Mat to Unity Texture using low-level native plugin interface.
-                // It seems that if enables the Multithreaded Rendering option in Android Player Settings, not work.
-                Utils.textureToMat (NatCam.Preview, matrix);
 
                 break;
             case MatCaptureMethod.Graphics_CopyTexture:
@@ -291,7 +292,7 @@ namespace NatCamWithOpenCVForUnityExample
                 if (SystemInfo.copyTextureSupport != UnityEngine.Rendering.CopyTextureSupport.None) {
                     Graphics.CopyTexture (NatCam.Preview, texture);
 
-                    matrix.put (0, 0, texture.GetRawTextureData ());
+                    Utils.copyToMat (texture.GetRawTextureData (), matrix);
 
                     // OpenCV uses an inverted coordinate system. Y-0 is the top of the image, whereas in OpenGL (and so NatCam), Y-0 is the bottom of the image.
                     Core.flip (matrix, matrix, 0);

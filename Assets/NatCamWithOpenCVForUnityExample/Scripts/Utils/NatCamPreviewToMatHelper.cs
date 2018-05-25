@@ -9,7 +9,7 @@ namespace NatCamWithOpenCVForUnityExample
 {
     /// <summary>
     /// NatCamPreview to mat helper.
-    /// v 1.0.0
+    /// v 1.0.2
     /// Depends on NatCam version 2.0f1 or later.
     /// </summary>
     public class NatCamPreviewToMatHelper : WebCamTextureToMatHelper
@@ -89,6 +89,15 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         protected override IEnumerator _Initialize ()
         {
+            if (!NatCam.Implementation.HasPermissions) {
+                Debug.LogError ("NatCam.Implementation.HasPermissions == false");
+
+                if (onErrorOccurred != null)
+                    onErrorOccurred.Invoke (ErrorCode.CAMERA_DEVICE_NOT_EXIST);
+
+                yield break;
+            }
+
             if (hasInitDone)
             {
                 ReleaseResources ();
@@ -284,7 +293,7 @@ namespace NatCamWithOpenCVForUnityExample
                 
             // Set `flip` flag to true because OpenCV uses inverted Y-coordinate system
             NatCam.CaptureFrame(pixelBuffer, true);
-            frameMat.put(0, 0, pixelBuffer);
+            Utils.copyToMat (pixelBuffer, frameMat);
 
             FlipMat (frameMat, flipVertical, flipHorizontal);
             if (rotatedFrameMat != null) {                

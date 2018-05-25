@@ -560,7 +560,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: NatCamPreviewToMatHelper Examplee
+  m_Text: NatCamPreviewToMatHelper Example
 --- !u!222 &265521585
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1998,6 +1998,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fc005588c60a0a4c827e3838c5f0e0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  exampleTitle: {fileID: 346089861}
   versionInfo: {fileID: 595830809}
   scrollRect: {fileID: 296877747}
   cameraResolutionDropdown: {fileID: 453525395}
@@ -2527,8 +2528,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 760072663}
   m_HandleRect: {fileID: 760072662}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.79066855
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

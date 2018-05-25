@@ -13,7 +13,7 @@
 * Unity >= 5.6.1f1
 * Scripting backend MONO / IL2CPP
 * NatCam - WebCam API 2.0f1 ([https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154](https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154))  
-* NatShare-API 1.0 ([https://github.com/olokobayusuf/NatShare-API](https://github.com/olokobayusuf/NatShare-API))  
+* NatShare - Mobile Sharing API 1.0f2 ([https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705](https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705))  
 * OpenCV for Unity 2.2.8 ([https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088))  
 
 
