@@ -90,8 +90,6 @@ namespace NatCamWithOpenCVForUnityExample
 
                 if (fpsMonitor != null)
                     fpsMonitor.consoleText = "NatCam.Implementation.HasPermissions == false";
-
-                return;
             }
 
             // Load global camera benchmark settings.
@@ -169,6 +167,9 @@ namespace NatCamWithOpenCVForUnityExample
 
             // Display the result
             preview.texture = texture;
+
+            if (fpsMonitor != null)
+                fpsMonitor.consoleText = "";
 
             Debug.Log ("OnStart (): " + matrix.cols() + " " + matrix.rows() + " " + NatCam.Preview.width + " " + NatCam.Preview.height + " " + texture.width + " " + texture.height);
         }

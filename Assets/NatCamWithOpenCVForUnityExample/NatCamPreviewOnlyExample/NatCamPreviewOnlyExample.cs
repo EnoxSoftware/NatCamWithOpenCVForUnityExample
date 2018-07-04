@@ -65,8 +65,6 @@ namespace NatCamWithOpenCVForUnityExample
 
                 if (fpsMonitor != null)
                     fpsMonitor.consoleText = "NatCam.Implementation.HasPermissions == false";
-
-                return;
             }
 
             // Load global camera benchmark settings.
@@ -119,6 +117,9 @@ namespace NatCamWithOpenCVForUnityExample
 
             // Scale the panel to match aspect ratios
             aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
+
+            if (fpsMonitor != null)
+                fpsMonitor.consoleText = "";
 
             Debug.Log ("# Active Camera Properties #####################");
 
@@ -202,7 +203,7 @@ namespace NatCamWithOpenCVForUnityExample
                 buffer = buffer ?? new byte[NatCam.Preview.width * NatCam.Preview.height * 4];
 
                 // Capture the current frame
-                if (!NatCam.CaptureFrame (buffer)) return;
+                NatCam.CaptureFrame (buffer);
 
                 // Size checking
                 if (texture && (texture.width != NatCam.Preview.width || texture.height != NatCam.Preview.height)) {

@@ -9,7 +9,7 @@ namespace NatCamWithOpenCVForUnityExample
 {
     /// <summary>
     /// NatCamPreview to mat helper.
-    /// v 1.0.2
+    /// v 1.0.3
     /// Depends on NatCam version 2.0f1 or later.
     /// </summary>
     public class NatCamPreviewToMatHelper : WebCamTextureToMatHelper
@@ -77,6 +77,37 @@ namespace NatCamWithOpenCVForUnityExample
         // Update is called once per frame
         protected override void Update ()
         {
+            if (hasInitDone) {
+                // Catch the orientation change of the screen and correct the mat image to the correct direction.
+                if (screenOrientation != Screen.orientation && (screenWidth != Screen.width || screenHeight != Screen.height)) {
+
+                    if (onDisposed != null)
+                        onDisposed.Invoke ();
+
+                    if (frameMat != null) {
+                        frameMat.Dispose ();
+                        frameMat = null;
+                    }
+                    if (rotatedFrameMat != null) {
+                        rotatedFrameMat.Dispose ();
+                        rotatedFrameMat = null;
+                    }
+
+                    frameMat = new Mat (NatCam.Preview.height, NatCam.Preview.width, CvType.CV_8UC4);
+                    screenOrientation = Screen.orientation;
+                    screenWidth = Screen.width;
+                    screenHeight = Screen.height;
+
+                    if (rotate90Degree)
+                        rotatedFrameMat = new Mat (NatCam.Preview.width, NatCam.Preview.height, CvType.CV_8UC4);
+
+                    if (onInitialized != null)
+                        onInitialized.Invoke ();
+                } else {
+                    screenWidth = Screen.width;
+                    screenHeight = Screen.height;
+                }
+            }
         }
 
         public virtual void LateUpdate ()
@@ -91,11 +122,6 @@ namespace NatCamWithOpenCVForUnityExample
         {
             if (!NatCam.Implementation.HasPermissions) {
                 Debug.LogError ("NatCam.Implementation.HasPermissions == false");
-
-                if (onErrorOccurred != null)
-                    onErrorOccurred.Invoke (ErrorCode.CAMERA_DEVICE_NOT_EXIST);
-
-                yield break;
             }
 
             if (hasInitDone)
@@ -312,7 +338,7 @@ namespace NatCamWithOpenCVForUnityExample
         {
             int flipCode = int.MinValue;
 
-            if (_flipVertical) {
+            if (flipVertical) {
                 if (flipCode == int.MinValue) {
                     flipCode = 0;
                 } else if (flipCode == 0) {
@@ -324,7 +350,7 @@ namespace NatCamWithOpenCVForUnityExample
                 }
             }
 
-            if (_flipHorizontal) {
+            if (flipHorizontal) {
                 if (flipCode == int.MinValue) {
                     flipCode = 1;
                 } else if (flipCode == 0) {

@@ -416,19 +416,23 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         private Mat GetMat ()
         {
-            Utils.webCamTextureToMat (webCamTexture, frameMat, colors);
+            Utils.webCamTextureToMat (webCamTexture, frameMat, colors, false);
 
             #if !UNITY_EDITOR && !(UNITY_STANDALONE || UNITY_WEBGL)
-            if (Screen.orientation == ScreenOrientation.Portrait || Screen.orientation == ScreenOrientation.PortraitUpsideDown) {
+            if (Screen.orientation == ScreenOrientation.Portrait || Screen.orientation == ScreenOrientation.PortraitUpsideDown) {                
+                if (webCamDevice.isFrontFacing){ 
+                    FlipMat (frameMat, true, true);
+                }else{
+                    FlipMat (frameMat, false, false);
+                }
                 Core.rotate (frameMat, rotatedFrameMat, Core.ROTATE_90_CLOCKWISE);
-                FlipMat (rotatedFrameMat);
                 return rotatedFrameMat;
             } else {
-                FlipMat (frameMat);
+                FlipMat (frameMat, false, false);
                 return frameMat;
             }
             #else
-            FlipMat (frameMat);
+            FlipMat (frameMat, false, false);
             return frameMat;
             #endif
         }
@@ -465,29 +469,54 @@ namespace NatCamWithOpenCVForUnityExample
         /// Flips the mat.
         /// </summary>
         /// <param name="mat">Mat.</param>
-        private void FlipMat (Mat mat)
+        protected virtual void FlipMat (Mat mat, bool flipVertical, bool flipHorizontal)
         {
-            int flipCode = int.MinValue;
-
+            //Since the order of pixels of WebCamTexture and Mat is opposite, the initial value of flipCode is set to 0 (flipVertical).
+            int flipCode = 0;
+                
             if (webCamDevice.isFrontFacing) {
                 if (webCamTexture.videoRotationAngle == 0) {
-                    flipCode = 1;
+                    flipCode = -1;
                 } else if (webCamTexture.videoRotationAngle == 90) {
-                    flipCode = 1;
+                    flipCode = -1;
                 }
                 if (webCamTexture.videoRotationAngle == 180) {
-                    flipCode = 0;
+                    flipCode = int.MinValue;
                 } else if (webCamTexture.videoRotationAngle == 270) {
-                    flipCode = 0;
+                    flipCode = int.MinValue;
                 }
             } else {
                 if (webCamTexture.videoRotationAngle == 180) {
-                    flipCode = -1;
+                    flipCode = 1;
                 } else if (webCamTexture.videoRotationAngle == 270) {
-                    flipCode = -1;
+                    flipCode = 1;
                 }
             }
-
+                
+            if (flipVertical) {
+                if (flipCode == int.MinValue) {
+                    flipCode = 0;
+                } else if (flipCode == 0) {
+                    flipCode = int.MinValue;
+                } else if (flipCode == 1) {
+                    flipCode = -1;
+                } else if (flipCode == -1) {
+                    flipCode = 1;
+                }
+            }
+                
+            if (flipHorizontal) {
+                if (flipCode == int.MinValue) {
+                    flipCode = 1;
+                } else if (flipCode == 0) {
+                    flipCode = -1;
+                } else if (flipCode == 1) {
+                    flipCode = int.MinValue;
+                } else if (flipCode == -1) {
+                    flipCode = 0;
+                }
+            }
+                
             if (flipCode > int.MinValue) {
                 Core.flip (mat, mat, flipCode);
             }
