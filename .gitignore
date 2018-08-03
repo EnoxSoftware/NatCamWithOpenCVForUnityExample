@@ -1,0 +1,8 @@
+Assets/OpenCVForUnity
+Assets/NatCam
+Assets/NatShare
+Library/
+Temp/
+.vs/
+.vscode/
+obj/
