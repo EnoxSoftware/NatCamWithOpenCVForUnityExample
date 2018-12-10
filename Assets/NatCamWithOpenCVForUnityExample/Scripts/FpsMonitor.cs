@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace NatCamWithOpenCVForUnityExample
-{
-    public class FpsMonitor : MonoBehaviour
-    {
+namespace NatCamWithOpenCVForUnityExample {
+
+    public class FpsMonitor : MonoBehaviour {
+        
         int tick = 0;
         float elapsed = 0;
         float fps = 0;

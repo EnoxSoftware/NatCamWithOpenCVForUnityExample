@@ -1,10 +1,10 @@
 ﻿using OpenCVForUnity;
 using System;
 
-namespace NatCamWithOpenCVForUnityExample
-{
-    public class ComicFilter
-    {
+namespace NatCamWithOpenCVForUnityExample {
+
+    public class ComicFilter {
+
         Mat grayMat;
         Mat lineMat;
         Mat maskMat;
@@ -13,11 +13,9 @@ namespace NatCamWithOpenCVForUnityExample
         byte[] grayPixels;
         byte[] maskPixels;
 
-        public void Process (Mat src, Mat dst)
-        {
+        public void Process (Mat src, Mat dst) {
             if (src == null)
                 throw new ArgumentNullException ("src == null");
-
             if (dst == null)
                 throw new ArgumentNullException ("dst == null");
 
@@ -80,30 +78,16 @@ namespace NatCamWithOpenCVForUnityExample
             Imgproc.cvtColor (grayDstMat, dst, Imgproc.COLOR_GRAY2RGBA);
         }
 
-        public void Dispose()
-        {
-            if (grayMat != null) {
-                grayMat.Dispose ();
-                grayMat = null;
-            }
-            if (lineMat != null) {
-                lineMat.Dispose ();
-                lineMat = null;
-            }
-            if (maskMat != null) {
-                maskMat.Dispose ();
-                maskMat = null;
-            }
-            if (bgMat != null) {
-                bgMat.Dispose ();
-                bgMat = null;
-            }
-            if (grayDstMat != null) {
-                grayDstMat.Dispose ();
-                grayDstMat = null;
-            }
-
-            grayPixels = null;
+        public void Dispose() {
+            foreach (var mat in new [] { grayMat, lineMat, maskMat, bgMat, grayDstMat })
+                if (mat != null)
+                    maskMat.Dispose();
+            grayDstMat =
+            bgMat =
+            maskMat =
+            lineMat =
+            grayMat = null;
+            grayPixels =
             maskPixels = null;
         }
     }
