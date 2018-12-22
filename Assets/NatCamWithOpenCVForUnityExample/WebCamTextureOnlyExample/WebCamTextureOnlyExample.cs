@@ -21,13 +21,14 @@ namespace NatCamWithOpenCVForUnityExample {
             NatCamWithOpenCVForUnityExample.CameraConfiguration(out width, out height, out framerate);
             // Create camera source
             cameraSource = new WebCamSource(width, height, framerate, useFrontCamera);
+            cameraSource.StartPreview(OnStart, OnFrame);
             // Update UI
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
         }
 
         protected override void OnStart () {
             // Create pixel buffer
-            pixelBuffer = new Color32[cameraSource.Preview.width * cameraSource.Preview.height * 4];
+            pixelBuffer = new Color32[cameraSource.Preview.width * cameraSource.Preview.height];
             // Create texture
             texture = new Texture2D(
                 cameraSource.Preview.width,

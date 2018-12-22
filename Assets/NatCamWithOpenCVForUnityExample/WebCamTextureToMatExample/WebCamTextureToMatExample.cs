@@ -22,6 +22,7 @@ namespace NatCamWithOpenCVForUnityExample {
             NatCamWithOpenCVForUnityExample.CameraConfiguration(out width, out height, out framerate);
             // Create camera source
             cameraSource = new WebCamSource(width, height, framerate, useFrontCamera);
+            cameraSource.StartPreview(OnStart, OnFrame);
             // Update UI
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
         }

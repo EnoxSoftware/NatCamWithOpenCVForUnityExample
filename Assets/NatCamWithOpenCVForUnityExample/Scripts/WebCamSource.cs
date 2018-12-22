@@ -12,7 +12,7 @@ namespace NatCamWithOpenCVForUnityExample {
         private Color32[] sourceBuffer, uprightBuffer;
         private int width, height, framerate;
         private int cameraIndex;
-        private bool firstFrame = true;
+        private bool firstFrame;
         private readonly bool useOpenCVForOrientation;
 
         #region --Client API--
@@ -34,18 +34,22 @@ namespace NatCamWithOpenCVForUnityExample {
                     break;
             this.webCamTexture = new WebCamTexture(ActiveCamera.name, width, height, framerate);
             this.useOpenCVForOrientation = useOpenCVForOrientation;
+            Camera.onPostRender += OnFrame;
         }
 
         public void Dispose () {
             Camera.onPostRender -= OnFrame;
+            Texture2D.Destroy(uprightTexture);
+            webCamTexture.Stop();
             WebCamTexture.Destroy(webCamTexture);
         }
 
         public void StartPreview (Action startCallback, Action frameCallback) {
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
+            sourceBuffer = null; // Lazily created
+            firstFrame = true;
             webCamTexture.Play();
-            Camera.onPostRender += OnFrame;
         }
 
         public void CaptureFrame (Mat matrix) {
@@ -69,19 +73,25 @@ namespace NatCamWithOpenCVForUnityExample {
         #region --Operations--
 
         private void OnFrame (Camera camera) { // INCOMPLETE
-            if (!webCamTexture.isPlaying)
+            if (!webCamTexture || !webCamTexture.isPlaying)
                 return;
             // Weird bug on macOS and macOS
             if (webCamTexture.width == 16 || webCamTexture.height == 16)
                 return;
-            // Update buffers and matrix
+            // Create buffers and texture
+            if (sourceBuffer == null) {
+                sourceBuffer =  webCamTexture.GetPixels32();
+                uprightBuffer = new Color32[sourceBuffer.Length];
+                uprightTexture = new Texture2D(webCamTexture.width, webCamTexture.height, TextureFormat.RGBA32, false, false);
+            }
+            // Orient
             webCamTexture.GetPixels32(sourceBuffer);
             if (useOpenCVForOrientation) {
-
+                // ...
             } else {
                 // ...
-                
             }
+            Array.Copy(sourceBuffer, uprightBuffer, sourceBuffer.Length);
             // Invoke client callbacks
             if (firstFrame) {
                 startCallback();

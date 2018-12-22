@@ -11,6 +11,7 @@ namespace NatCamWithOpenCVForUnityExample {
         private Action startCallback, frameCallback;
         private byte[] sourceBuffer;
         
+
         #region --Client API--
 
         public Texture Preview { get { return NatCam.Preview; } }
@@ -30,7 +31,14 @@ namespace NatCamWithOpenCVForUnityExample {
         public void StartPreview (Action startCallback, Action frameCallback) {
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
-            NatCam.StartPreview(camera, OnStart, frameCallback);
+            NatCam.StartPreview(
+                camera,
+                () => {
+                    sourceBuffer = new byte[Preview.width * Preview.height * 4];
+                    startCallback();
+                },
+                frameCallback
+            );
         }
 
         public void CaptureFrame (Mat matrix) {
@@ -46,16 +54,7 @@ namespace NatCamWithOpenCVForUnityExample {
 
         public void SwitchCamera () {
             camera = ++camera % DeviceCamera.Cameras.Length;
-            NatCam.StartPreview(camera, OnStart, frameCallback);
-        }
-        #endregion
-
-
-        #region --Operations--
-
-        private void OnStart () {
-            sourceBuffer = new byte[Preview.width * Preview.height * 4];
-            startCallback();
+            StartPreview(startCallback, frameCallback);
         }
         #endregion
     }
