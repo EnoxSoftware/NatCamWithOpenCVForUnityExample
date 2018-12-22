@@ -45,7 +45,7 @@ namespace NatCamWithOpenCVForUnityExample {
         }
 
         public void SwitchCamera () {
-            camera = NatCam.Camera.IsFrontFacing ? DeviceCamera.RearCamera : DeviceCamera.FrontCamera;
+            camera = ++camera % DeviceCamera.Cameras.Length;
             NatCam.StartPreview(camera, OnStart, frameCallback);
         }
         #endregion

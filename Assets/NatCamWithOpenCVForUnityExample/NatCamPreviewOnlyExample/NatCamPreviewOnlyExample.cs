@@ -19,9 +19,8 @@ namespace NatCamWithOpenCVForUnityExample {
 
         protected override void Start () {
             // Load global camera benchmark settings.
-            int width = 1280, height = 720, framerate = 30;
-            //NatCamWithOpenCVForUnityExample.GetCameraResolution (out width, out height);
-            //NatCamWithOpenCVForUnityExample.GetCameraFps (out fps);
+            int width, height, framerate;
+            NatCamWithOpenCVForUnityExample.CameraConfiguration(out width, out height, out framerate);
             // Create camera source
             cameraSource = new NatCamSource(width, height, framerate, useFrontCamera);
             // Update UI

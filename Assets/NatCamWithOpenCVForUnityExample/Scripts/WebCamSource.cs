@@ -6,18 +6,19 @@ namespace NatCamWithOpenCVForUnityExample {
 
     public class WebCamSource : ICameraSource {
         
-        private readonly WebCamTexture webCamTexture;
-        private readonly bool useOpenCVForOrientation;
+        private WebCamTexture webCamTexture;
         private Action startCallback, frameCallback;
         private Texture2D uprightTexture;
         private Color32[] sourceBuffer, uprightBuffer;
-        private int width, height;
+        private int width, height, framerate;
+        private int cameraIndex;
         private bool firstFrame = true;
+        private readonly bool useOpenCVForOrientation;
 
         #region --Client API--
 
         public Texture Preview { get { return uprightTexture; } }
-        public WebCamDevice ActiveCamera { get; private set; }
+        public WebCamDevice ActiveCamera { get { return WebCamTexture.devices[cameraIndex]; } }
 
         public WebCamSource (int width, int height, int framerate = 30, bool front = false, bool useOpenCVForOrientation = false) {
             #if UNITY_ANDROID && !UNITY_EDITOR
@@ -25,11 +26,13 @@ namespace NatCamWithOpenCVForUnityExample {
             // https://forum.unity.com/threads/released-opencv-for-unity.277080/page-33#post-3445178
             framerate = front ? 15 : framerate;
             #endif
-            WebCamDevice device = default(WebCamDevice);
-            foreach (var webcam in WebCamTexture.devices)
-                if ((device = webcam).isFrontFacing == front)
+            this.width = width;
+            this.height = height;
+            this.framerate = framerate;
+            for (; cameraIndex < WebCamTexture.devices.Length; cameraIndex++)
+                if (WebCamTexture.devices[cameraIndex].isFrontFacing == front)
                     break;
-            this.webCamTexture = new WebCamTexture(device.name, width, height, framerate);
+            this.webCamTexture = new WebCamTexture(ActiveCamera.name, width, height, framerate);
             this.useOpenCVForOrientation = useOpenCVForOrientation;
         }
 
@@ -41,6 +44,7 @@ namespace NatCamWithOpenCVForUnityExample {
         public void StartPreview (Action startCallback, Action frameCallback) {
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
+            webCamTexture.Play();
             Camera.onPostRender += OnFrame;
         }
 
@@ -53,9 +57,10 @@ namespace NatCamWithOpenCVForUnityExample {
             Array.Copy(uprightBuffer, pixelBuffer, uprightBuffer.Length);
         }
 
-        public void SwitchCamera () { // INCOMPLETE
+        public void SwitchCamera () {
             Dispose();
-            // ...
+            cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
+            webCamTexture = new WebCamTexture(ActiveCamera.name, width, height, framerate);
             StartPreview(startCallback, frameCallback);
         }
         #endregion
