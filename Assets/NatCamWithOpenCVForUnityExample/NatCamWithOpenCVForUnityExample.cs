@@ -20,8 +20,8 @@ namespace NatCamWithOpenCVForUnityExample {
         [HeaderAttribute ("Benchmark")]
         public Dropdown cameraResolutionDropdown;
         public Dropdown cameraFPSDropdown;
-        private static ResolutionPreset cameraResolution = ResolutionPreset._1280x720;
-        private static FrameratePreset cameraFramerate = FrameratePreset._30;
+        private static ResolutionPreset cameraResolution = 0;
+        private static FrameratePreset cameraFramerate = 0;
 
         [Header("UI")]
         public Text exampleTitle;
@@ -98,12 +98,10 @@ namespace NatCamWithOpenCVForUnityExample {
 
         public void OnCameraResolutionDropdownValueChanged (int result) {
             cameraResolution = (ResolutionPreset)result;
-            Debug.Log("Res: "+cameraResolution);
         }
 
         public void OnCameraFPSDropdownValueChanged (int result) {
             cameraFramerate = (FrameratePreset)result;
-            Debug.Log("Framerate: "+cameraFramerate);
         }
         
         public void OnScrollRectValueChanged () {

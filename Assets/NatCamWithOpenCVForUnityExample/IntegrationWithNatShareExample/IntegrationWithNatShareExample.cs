@@ -26,6 +26,7 @@ namespace NatCamWithOpenCVForUnityExample {
             NatCamWithOpenCVForUnityExample.CameraConfiguration(out width, out height, out framerate);
             // Create camera source
             cameraSource = new NatCamSource(width, height, framerate, useFrontCamera);
+            cameraSource.StartPreview(OnStart, OnFrame);
             // Create comic filter
             comicFilter = new ComicFilter ();
         }

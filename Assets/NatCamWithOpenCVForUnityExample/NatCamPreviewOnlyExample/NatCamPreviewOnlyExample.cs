@@ -23,6 +23,7 @@ namespace NatCamWithOpenCVForUnityExample {
             NatCamWithOpenCVForUnityExample.CameraConfiguration(out width, out height, out framerate);
             // Create camera source
             cameraSource = new NatCamSource(width, height, framerate, useFrontCamera);
+            cameraSource.StartPreview(OnStart, OnFrame);
             // Update UI
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
         }
@@ -42,8 +43,7 @@ namespace NatCamWithOpenCVForUnityExample {
             rawImage.texture = texture;
             aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
             Debug.Log("NatCam camera source started with resolution: "+cameraSource.Preview.width+"x"+cameraSource.Preview.height);
-            // Log stuff
-            Debug.Log ("# Active Camera Properties #####################");
+            // Log camera properties
             var cameraProps = new Dictionary<string, string> ();
             cameraProps.Add ("IsFrontFacing", NatCam.Camera.IsFrontFacing.ToString());
             cameraProps.Add ("Framerate", NatCam.Camera.Framerate.ToString());
@@ -62,6 +62,9 @@ namespace NatCamWithOpenCVForUnityExample {
             cameraProps.Add ("TorchEnabled", NatCam.Camera.TorchEnabled.ToString());
             cameraProps.Add ("MaxZoomRatio", NatCam.Camera.MaxZoomRatio.ToString());
             cameraProps.Add ("ZoomRatio", NatCam.Camera.ZoomRatio.ToString());
+            Debug.Log ("# Active Camera Properties #####################");
+            foreach (string key in cameraProps.Keys)
+                Debug.Log(key + ": " + cameraProps[key]);
             Debug.Log ("#######################################");
         }
 

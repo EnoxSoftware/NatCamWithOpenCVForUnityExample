@@ -1867,7 +1867,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1302788346}
   - component: {fileID: 1302788347}
-  - component: {fileID: 1302788348}
   m_Layer: 0
   m_Name: NatCamPreviewOnly
   m_TagString: Untagged
@@ -1899,30 +1898,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7de64702992c67842b18b623410d3b42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rawImage: {fileID: 0}
+  rawImage: {fileID: 231857593}
   aspectFitter: {fileID: 231857596}
   useFrontCamera: 0
   imageProcessingType: 0
   imageProcessingTypeDropdown: {fileID: 1213656990}
---- !u!114 &1302788348
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1302788345}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9730a00114a61104b87dc34be31889c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignment: 1
-  offset: {x: 10, y: 10}
-  boxVisible: 1
-  boxWidth: 200
-  boxHeight: 200
-  padding: {x: 8, y: 5}
-  consoleHeight: 50
-  consoleText: 
 --- !u!1 &1380262408
 GameObject:
   m_ObjectHideFlags: 0

@@ -34,7 +34,6 @@ namespace NatCamWithOpenCVForUnityExample {
                     break;
             this.webCamTexture = new WebCamTexture(ActiveCamera.name, width, height, framerate);
             this.useOpenCVForOrientation = useOpenCVForOrientation;
-            Camera.onPostRender += OnFrame;
         }
 
         public void Dispose () {
@@ -47,6 +46,7 @@ namespace NatCamWithOpenCVForUnityExample {
         public void StartPreview (Action startCallback, Action frameCallback) {
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
+            Camera.onPostRender += OnFrame;
             sourceBuffer = null; // Lazily created
             firstFrame = true;
             webCamTexture.Play();
@@ -73,7 +73,7 @@ namespace NatCamWithOpenCVForUnityExample {
         #region --Operations--
 
         private void OnFrame (Camera camera) { // INCOMPLETE
-            if (!webCamTexture || !webCamTexture.isPlaying)
+            if (!webCamTexture.isPlaying)
                 return;
             // Weird bug on macOS and macOS
             if (webCamTexture.width == 16 || webCamTexture.height == 16)

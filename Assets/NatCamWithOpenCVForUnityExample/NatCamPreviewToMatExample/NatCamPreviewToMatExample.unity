@@ -498,7 +498,6 @@ GameObject:
   m_Component:
   - component: {fileID: 294466118}
   - component: {fileID: 294466117}
-  - component: {fileID: 294466116}
   - component: {fileID: 294466115}
   - component: {fileID: 294466114}
   m_Layer: 0
@@ -516,13 +515,6 @@ AudioListener:
   m_GameObject: {fileID: 294466113}
   m_Enabled: 1
 --- !u!124 &294466115
-Behaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 294466113}
-  m_Enabled: 1
---- !u!92 &294466116
 Behaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2425,7 +2417,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1466705441}
   - component: {fileID: 1466705440}
-  - component: {fileID: 1466705442}
   m_Layer: 0
   m_Name: NatCamPreviewToMat
   m_TagString: Untagged
@@ -2464,25 +2455,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1466705442
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1466705439}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9730a00114a61104b87dc34be31889c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alignment: 1
-  offset: {x: 10, y: 10}
-  boxVisible: 1
-  boxWidth: 200
-  boxHeight: 200
-  padding: {x: 8, y: 5}
-  consoleHeight: 50
-  consoleText: 
 --- !u!1 &1473954708
 GameObject:
   m_ObjectHideFlags: 0
