@@ -30,11 +30,11 @@ namespace NatCamWithOpenCVForUnityExample {
 
         protected override void OnStart () {
             // Create pixel buffer
-            pixelBuffer = new Color32[cameraSource.Preview.width * cameraSource.Preview.height];
+            pixelBuffer = new Color32[cameraSource.width * cameraSource.height];
             // Create texture
             texture = new Texture2D(
-                cameraSource.Preview.width,
-                cameraSource.Preview.height,
+                cameraSource.width,
+                cameraSource.height,
                 TextureFormat.RGBA32,
                 false,
                 false
@@ -42,7 +42,7 @@ namespace NatCamWithOpenCVForUnityExample {
             // Display preview
             rawImage.texture = texture;
             aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
-            Debug.Log("NatCam camera source started with resolution: "+cameraSource.Preview.width+"x"+cameraSource.Preview.height);
+            Debug.Log("NatCam camera source started with resolution: "+cameraSource.width+"x"+cameraSource.height);
             // Log camera properties
             var cameraProps = new Dictionary<string, string> ();
             cameraProps.Add ("IsFrontFacing", NatCam.Camera.IsFrontFacing.ToString());

@@ -28,19 +28,19 @@ namespace NatCamWithOpenCVForUnityExample {
 
         protected override void OnStart () {
             // Create pixel buffer
-            pixelBuffer = new Color32[cameraSource.Preview.width * cameraSource.Preview.height];
+            pixelBuffer = new Color32[cameraSource.width * cameraSource.height];
             // Create texture
             texture = new Texture2D(
-                cameraSource.Preview.width,
-                cameraSource.Preview.height,
+                cameraSource.width,
+                cameraSource.height,
                 TextureFormat.RGBA32,
                 false,
                 false
             );
             // Display texture
             rawImage.texture = texture;
-            aspectFitter.aspectRatio = cameraSource.Preview.width / (float)cameraSource.Preview.height;
-            Debug.Log("WebCam camera source started with resolution: "+cameraSource.Preview.width+"x"+cameraSource.Preview.height);
+            aspectFitter.aspectRatio = cameraSource.width / (float)cameraSource.height;
+            Debug.Log("WebCam camera source started with resolution: "+cameraSource.width+"x"+cameraSource.height);
         }
 
         protected override void OnFrame () {

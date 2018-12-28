@@ -7,7 +7,8 @@ namespace NatCamWithOpenCVForUnityExample {
     public interface ICameraSource : IDisposable {
 
         #region --Properties--
-        Texture Preview { get; }
+        int width { get; }
+        int height { get; }
         #endregion
         
 

@@ -7,14 +7,18 @@ namespace NatCamWithOpenCVForUnityExample {
 
     public class NatCamSource : ICameraSource {
 
+        #region --Op vars--
         private DeviceCamera camera;
         private Action startCallback, frameCallback;
         private byte[] sourceBuffer;
+        #endregion
         
 
         #region --Client API--
 
-        public Texture Preview { get { return NatCam.Preview; } }
+        public int width { get { return NatCam.Preview.width; } }
+        public int height { get { return NatCam.Preview.height; }}
+        public Texture Preview { get { return NatCam.Preview; }}
         public DeviceCamera ActiveCamera { get { return NatCam.Camera; }}
 
         public NatCamSource (int width, int height, int framerate, bool front) {
@@ -34,7 +38,7 @@ namespace NatCamWithOpenCVForUnityExample {
             NatCam.StartPreview(
                 camera,
                 () => {
-                    sourceBuffer = new byte[Preview.width * Preview.height * 4];
+                    sourceBuffer = new byte[width * height * 4];
                     startCallback();
                 },
                 frameCallback

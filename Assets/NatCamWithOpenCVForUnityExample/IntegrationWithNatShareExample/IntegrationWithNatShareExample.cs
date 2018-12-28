@@ -33,11 +33,11 @@ namespace NatCamWithOpenCVForUnityExample {
 
         protected override void OnStart () {
             // Create matrix
-            frameMatrix = new Mat(cameraSource.Preview.height, cameraSource.Preview.width, CvType.CV_8UC4);
+            frameMatrix = new Mat(cameraSource.height, cameraSource.width, CvType.CV_8UC4);
             // Create texture
             texture = new Texture2D(
-                cameraSource.Preview.width,
-                cameraSource.Preview.height,
+                cameraSource.width,
+                cameraSource.height,
                 TextureFormat.RGBA32,
                 false,
                 false
@@ -45,7 +45,7 @@ namespace NatCamWithOpenCVForUnityExample {
             // Display preview
             rawImage.texture = texture;
             aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
-            Debug.Log("NatCam camera source started with resolution: "+cameraSource.Preview.width+"x"+cameraSource.Preview.height);
+            Debug.Log("NatCam camera source started with resolution: "+cameraSource.width+"x"+cameraSource.height);
         }
 
         protected override void OnFrame () {

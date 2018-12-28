@@ -79,6 +79,7 @@
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\FpsMonitor.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\ICameraSource.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\NatCamSource.cs" />
+     <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\WebCamMatSource.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\WebCamSource.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\ShowLicense\ShowLicense.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\ShowSystemInfo\ShowSystemInfo.cs" />

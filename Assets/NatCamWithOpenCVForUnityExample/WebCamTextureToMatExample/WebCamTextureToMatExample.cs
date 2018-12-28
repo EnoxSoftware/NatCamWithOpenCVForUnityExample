@@ -11,7 +11,7 @@ namespace NatCamWithOpenCVForUnityExample {
     /// WebCamTexture To Mat Example
     /// An example of converting a WebCamTexture image to OpenCV's Mat format.
     /// </summary>
-    public class WebCamTextureToMatExample : ExampleBase<WebCamSource> {
+    public class WebCamTextureToMatExample : ExampleBase<WebCamMatSource> {
 
         Mat frameMatrix, grayMatrix;
         Texture2D texture;
@@ -21,7 +21,7 @@ namespace NatCamWithOpenCVForUnityExample {
             int width, height, framerate;
             NatCamWithOpenCVForUnityExample.CameraConfiguration(out width, out height, out framerate);
             // Create camera source
-            cameraSource = new WebCamSource(width, height, framerate, useFrontCamera);
+            cameraSource = new WebCamMatSource(width, height, framerate, useFrontCamera);
             cameraSource.StartPreview(OnStart, OnFrame);
             // Update UI
             imageProcessingTypeDropdown.value = (int)imageProcessingType;
@@ -29,20 +29,20 @@ namespace NatCamWithOpenCVForUnityExample {
 
         protected override void OnStart () {
             // Create matrices
-            frameMatrix = new Mat(cameraSource.Preview.height, cameraSource.Preview.width, CvType.CV_8UC4);
-            grayMatrix = new Mat(cameraSource.Preview.height, cameraSource.Preview.width, CvType.CV_8UC1);
+            frameMatrix = new Mat(cameraSource.height, cameraSource.width, CvType.CV_8UC4);
+            grayMatrix = new Mat(cameraSource.height, cameraSource.width, CvType.CV_8UC1);
             // Create texture
             texture = new Texture2D(
-                cameraSource.Preview.width,
-                cameraSource.Preview.height,
+                cameraSource.width,
+                cameraSource.height,
                 TextureFormat.RGBA32,
                 false,
                 false
             );
             // Display texture
             rawImage.texture = texture;
-            aspectFitter.aspectRatio = cameraSource.Preview.width / (float)cameraSource.Preview.height;
-            Debug.Log("WebCam camera source started with resolution: "+cameraSource.Preview.width+"x"+cameraSource.Preview.height);
+            aspectFitter.aspectRatio = cameraSource.width / (float)cameraSource.height;
+            Debug.Log("WebCam camera source started with resolution: "+cameraSource.width+"x"+cameraSource.height);
         }
 
         protected override void OnFrame () {
