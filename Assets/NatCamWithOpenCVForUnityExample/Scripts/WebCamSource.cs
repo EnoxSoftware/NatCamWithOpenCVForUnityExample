@@ -108,9 +108,6 @@ namespace NatCamWithOpenCVForUnityExample {
                     width = webCamTexture.height;
                     height = webCamTexture.width;
                     break;
-                case DeviceOrientation.FaceDown:
-                case DeviceOrientation.FaceUp:
-                case DeviceOrientation.Unknown: break;
             }
             // Orientation checking
             if (orientation != reference) {

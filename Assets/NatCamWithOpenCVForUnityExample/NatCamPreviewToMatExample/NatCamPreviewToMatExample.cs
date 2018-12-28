@@ -97,16 +97,16 @@ namespace NatCamWithOpenCVForUnityExample {
                 case MatCaptureMethod.BlitWithReadPixels:
                     Utils.textureToTexture2D(cameraSource.Preview, texture);
                     Utils.copyToMat(texture.GetRawTextureData(), frameMatrix);
-                    Core.flip (frameMatrix, frameMatrix, 0);
+                    Core.flip(frameMatrix, frameMatrix, 0);
                     break;
                 case MatCaptureMethod.Graphics_CopyTexture:
                     if (SystemInfo.copyTextureSupport == UnityEngine.Rendering.CopyTextureSupport.None) {
                         Debug.LogError("This device does not support Graphics::CopyTexture");
                         return;
                     }
-                    Graphics.CopyTexture (NatCam.Preview, texture);
-                    Utils.copyToMat (texture.GetRawTextureData(), frameMatrix);
-                    Core.flip (frameMatrix, frameMatrix, 0);
+                    Graphics.CopyTexture(NatCam.Preview, texture);
+                    Utils.copyToMat(texture.GetRawTextureData(), frameMatrix);
+                    Core.flip(frameMatrix, frameMatrix, 0);
                     break;
             }
             // Process

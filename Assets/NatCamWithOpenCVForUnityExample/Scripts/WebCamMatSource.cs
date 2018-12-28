@@ -10,7 +10,7 @@ namespace NatCamWithOpenCVForUnityExample {
         #region --Op vars--
         private WebCamTexture webCamTexture;
         private Action startCallback, frameCallback;
-        private Mat previewMatrix;
+        private Mat sourceMatrix, previewMatrix;
         private int requestedWidth, requestedHeight, framerate;
         private int cameraIndex;
         private bool firstFrame;
@@ -20,8 +20,8 @@ namespace NatCamWithOpenCVForUnityExample {
 
         #region --Client API--
 
-        public int width { get; private set; }
-        public int height { get; private set; }
+        public int width { get { return previewMatrix.width(); }}
+        public int height { get { return previewMatrix.height(); }}
 
         public WebCamDevice ActiveCamera { get { return WebCamTexture.devices[cameraIndex]; } }
 
@@ -42,6 +42,12 @@ namespace NatCamWithOpenCVForUnityExample {
 
         public void Dispose () {
             Camera.onPostRender -= OnFrame;
+            if (sourceMatrix != null)
+                sourceMatrix.Dispose();
+            if (previewMatrix != null)
+                previewMatrix.Dispose();
+            sourceMatrix =
+            previewMatrix = null;
             webCamTexture.Stop();
             WebCamTexture.Destroy(webCamTexture);
             webCamTexture = null;
@@ -63,7 +69,7 @@ namespace NatCamWithOpenCVForUnityExample {
             Utils.copyFromMat(previewMatrix, pixelBuffer);
         }
 
-        public void SwitchCamera () {
+        public void SwitchCamera () { // INCOMPLETE
             Dispose();
             cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
             webCamTexture = new WebCamTexture(ActiveCamera.name, requestedWidth, requestedHeight, framerate);
@@ -74,16 +80,34 @@ namespace NatCamWithOpenCVForUnityExample {
 
         #region --Operations--
 
-        private void OnFrame (Camera camera) { // INCOMPLETE
+        private void OnFrame (Camera camera) { // INCOMPLETE // Flippings
             if (!webCamTexture.isPlaying)
                 return;
             // Weird bug on macOS and macOS
             if (webCamTexture.width == 16 || webCamTexture.height == 16)
                 return;
-            // Matrix checking
-            previewMatrix = previewMatrix ?? new Mat(webCamTexture.height, webCamTexture.width, CvType.CV_8UC4);
-            // Update
-            Utils.webCamTextureToMat(webCamTexture, previewMatrix);
+            // Check matrix
+            sourceMatrix = sourceMatrix ?? new Mat(webCamTexture.height, webCamTexture.width, CvType.CV_8UC4);
+            previewMatrix = previewMatrix ?? new Mat();
+            // Update matrix
+            Utils.webCamTextureToMat(webCamTexture, sourceMatrix);
+            var reference = (DeviceOrientation)(int)Screen.orientation;
+            switch (reference) {
+                case DeviceOrientation.Portrait:
+                    Core.rotate(sourceMatrix, previewMatrix, Core.ROTATE_90_CLOCKWISE);
+                    break;
+                case DeviceOrientation.LandscapeRight:
+                    Core.rotate(sourceMatrix, previewMatrix, Core.ROTATE_180);
+                    break;
+                case DeviceOrientation.PortraitUpsideDown:
+                    Core.rotate(sourceMatrix, previewMatrix, Core.ROTATE_90_COUNTERCLOCKWISE);
+                    break;
+            }
+            // Orientation checking
+            if (orientation != reference) {
+                orientation = reference;
+                firstFrame = true;
+            }
             // Invoke client callbacks
             if (firstFrame) {
                 startCallback();
