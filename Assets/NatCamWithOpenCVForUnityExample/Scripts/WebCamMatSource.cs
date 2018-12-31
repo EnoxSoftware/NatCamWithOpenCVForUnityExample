@@ -69,7 +69,7 @@ namespace NatCamWithOpenCVForUnityExample {
             Utils.copyFromMat(previewMatrix, pixelBuffer);
         }
 
-        public void SwitchCamera () { // INCOMPLETE
+        public void SwitchCamera () {
             Dispose();
             cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
             webCamTexture = new WebCamTexture(ActiveCamera.name, requestedWidth, requestedHeight, framerate);
@@ -80,7 +80,7 @@ namespace NatCamWithOpenCVForUnityExample {
 
         #region --Operations--
 
-        private void OnFrame (Camera camera) { // INCOMPLETE // Flippings
+        private void OnFrame (Camera camera) {
             if (!webCamTexture.isPlaying)
                 return;
             // Weird bug on macOS and macOS
@@ -93,14 +93,25 @@ namespace NatCamWithOpenCVForUnityExample {
             Utils.webCamTextureToMat(webCamTexture, sourceMatrix);
             var reference = (DeviceOrientation)(int)Screen.orientation;
             switch (reference) {
+                case DeviceOrientation.LandscapeLeft:
+                    sourceMatrix.copyTo(previewMatrix);
+                    if (ActiveCamera.isFrontFacing)
+                        Core.flip(previewMatrix, previewMatrix, 0);
+                    break;
                 case DeviceOrientation.Portrait:
                     Core.rotate(sourceMatrix, previewMatrix, Core.ROTATE_90_CLOCKWISE);
+                    if (ActiveCamera.isFrontFacing)
+                        Core.flip(previewMatrix, previewMatrix, 1);
                     break;
                 case DeviceOrientation.LandscapeRight:
                     Core.rotate(sourceMatrix, previewMatrix, Core.ROTATE_180);
+                    if (ActiveCamera.isFrontFacing)
+                        Core.flip(previewMatrix, previewMatrix, 0);
                     break;
                 case DeviceOrientation.PortraitUpsideDown:
                     Core.rotate(sourceMatrix, previewMatrix, Core.ROTATE_90_COUNTERCLOCKWISE);
+                    if (ActiveCamera.isFrontFacing)
+                        Core.flip(previewMatrix, previewMatrix, 1);
                     break;
             }
             // Orientation checking

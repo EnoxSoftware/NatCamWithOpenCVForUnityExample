@@ -76,7 +76,7 @@
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\NatCamPreviewToMatExample\NatCamPreviewToMatExample.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\NatCamWithOpenCVForUnityExample.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\ExampleBase.cs" />
-     <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\FpsMonitor.cs" />
+     <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\FramerateMonitor.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\ICameraSource.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\NatCamSource.cs" />
      <Compile Include="Assets\NatCamWithOpenCVForUnityExample\Scripts\WebCamMatSource.cs" />

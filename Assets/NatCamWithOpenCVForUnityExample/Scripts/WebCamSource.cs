@@ -64,7 +64,7 @@ namespace NatCamWithOpenCVForUnityExample {
             Array.Copy(uprightBuffer, pixelBuffer, uprightBuffer.Length);
         }
 
-        public void SwitchCamera () { // INCOMPLETE
+        public void SwitchCamera () {
             Dispose();
             cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
             webCamTexture = new WebCamTexture(ActiveCamera.name, requestedWidth, requestedHeight, requestedFramerate);
@@ -75,7 +75,7 @@ namespace NatCamWithOpenCVForUnityExample {
 
         #region --Operations--
 
-        private void OnFrame (Camera camera) { // INCOMPLETE // Flipping
+        private void OnFrame (Camera camera) {
             if (!webCamTexture.isPlaying)
                 return;
             // Weird bug on macOS and macOS
@@ -89,24 +89,32 @@ namespace NatCamWithOpenCVForUnityExample {
             var reference = (DeviceOrientation)(int)Screen.orientation;
             switch (reference) {
                 case DeviceOrientation.LandscapeLeft:
-                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 0);
                     width = webCamTexture.width;
                     height = webCamTexture.height;
+                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 0);
+                    if (ActiveCamera.isFrontFacing)
+                        FlipVertical(uprightBuffer, width, height, uprightBuffer);
                     break;
                 case DeviceOrientation.Portrait:
-                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 1);
                     width = webCamTexture.height;
                     height = webCamTexture.width;
+                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 1);
+                    if (ActiveCamera.isFrontFacing)
+                        FlipHorizontal(uprightBuffer, width, height, uprightBuffer);
                     break;
                 case DeviceOrientation.LandscapeRight:
-                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 2);
                     width = webCamTexture.width;
                     height = webCamTexture.height;
+                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 2);
+                    if (ActiveCamera.isFrontFacing)
+                        FlipVertical(uprightBuffer, width, height, uprightBuffer);
                     break;
                 case DeviceOrientation.PortraitUpsideDown:
-                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 3);
                     width = webCamTexture.height;
                     height = webCamTexture.width;
+                    Rotate(sourceBuffer, webCamTexture.width, webCamTexture.height, uprightBuffer, 3);
+                    if (ActiveCamera.isFrontFacing)
+                        FlipHorizontal(uprightBuffer, width, height, uprightBuffer);
                     break;
             }
             // Orientation checking
@@ -127,9 +135,15 @@ namespace NatCamWithOpenCVForUnityExample {
         #region --Utilities--
 
         private static void FlipVertical (Color32[] src, int srcWidth, int srcHeight, Color32[] dst) {
+            // Support in place application at the expense of GC
+            if (src == dst) {
+                var temp = new Color32[src.Length];
+                Array.Copy(src, temp, src.Length);
+                src = temp;
+            }
             // Flip by copying pixel rows
-            for (int i = 0, j = srcHeight - i - 1; i < srcHeight; i++, j--)
-                Buffer.BlockCopy(src, i * srcWidth, dst, j * srcWidth, srcWidth);
+            for (int i = 0, j = srcHeight - 1; i < srcHeight; i++, j--)
+                Array.Copy(src, i * srcWidth, dst, j * srcWidth, srcWidth);
         }
 
         private static void FlipHorizontal (Color32[] src, int srcWidth, int srcHeight, Color32[] dst) {
