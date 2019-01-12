@@ -1,30 +1,24 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-#if UNITY_5_3 || UNITY_5_3_OR_NEWER
-using UnityEngine.SceneManagement;
-#endif
+namespace NatCamWithOpenCVForUnityExample {
 
-namespace NatCamWithOpenCVForUnityExample
-{
-    public class ShowSystemInfo : MonoBehaviour
-    {
+    public class ShowSystemInfo : MonoBehaviour {
+
         public Text systemInfoText;
         public InputField systemInfoInputField;
         Dictionary<string, string> dicSystemInfo;
 
-        // Use this for initialization
-        void Start ()
-        {
+        void Start () {
             dicSystemInfo = GetSystemInfo ();
 
             systemInfoText.text = systemInfoInputField.text = "### System Info ###" + "\n";
             Debug.Log("### System Info ###");
 
-            foreach (string key in dicSystemInfo.Keys)
-            {
+            foreach (string key in dicSystemInfo.Keys) {
                 systemInfoText.text = systemInfoInputField.text += key + " = " + dicSystemInfo [key] + "\n";
                 Debug.Log(key + "=" + dicSystemInfo[key]);
             }
@@ -33,14 +27,7 @@ namespace NatCamWithOpenCVForUnityExample
             Debug.Log("###################");
         }
 
-        // Update is called once per frame
-        void Update ()
-        {
-
-        }
-
-        public Dictionary<string, string> GetSystemInfo()
-        {
+        public Dictionary<string, string> GetSystemInfo() {
             Dictionary<string, string> dicSystemInfo = new Dictionary<string, string> ();
 
             dicSystemInfo.Add("OpenCVForUnity version", OpenCVForUnity.Core.NATIVE_LIBRARY_NAME + " " + OpenCVForUnity.Utils.getVersion () + " (" + OpenCVForUnity.Core.VERSION + ")");
@@ -119,13 +106,8 @@ namespace NatCamWithOpenCVForUnityExample
             return dicSystemInfo;
         }
 
-        public void OnBackButtonClick ()
-        {
-            #if UNITY_5_3 || UNITY_5_3_OR_NEWER
-            SceneManager.LoadScene ("NatCamWithOpenCVForUnityExample");
-            #else
-            Application.LoadLevel ("NatCamWithOpenCVForUnityExample");
-            #endif
+        public void OnBackButtonClick () {
+            SceneManager.LoadScene("NatCamWithOpenCVForUnityExample");
         }
     }
 }

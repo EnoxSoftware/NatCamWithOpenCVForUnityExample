@@ -1,25 +1,22 @@
 # NatCam With OpenCVForUnity Example
-
-* An example of a benchmark test integrating NatCam and OpenCVForUnity. (Comparison between WebCamTexture and NatCam API)  
-* An example of replacing WebCamTextureToMatHelper with NatCamPreviewToMatHelper.
-* An example of native sharing and save to the camera roll using NatShare API.
+- An example of a benchmark test integrating NatCam and OpenCVForUnity. (Comparison between WebCamTexture and NatCam API)  
+- An example of replacing WebCamTextureToMatHelper with NatCamPreviewToMatHelper.
+- An example of native sharing and save to the camera roll using NatShare API.
 
 ## Benchmark
 ![benchmark.jpg](benchmark.jpg) 
 
-
 ## Environment
-* Anddroid (Pixel, Nexus 7, Zenfone, SC-04E) / iOS (iPhone8, iPhone6)
-* Unity >= 5.6.1f1
-* Scripting backend MONO / IL2CPP
-* NatCam - WebCam API 2.0f3 ([https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154](https://assetstore.unity.com/packages/tools/integration/natcam-webcam-api-52154?aid=1011l4ehR))  
-* NatShare - Mobile Sharing API 1.0f3 ([https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705](https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705?aid=1011l4ehR))  
-* OpenCV for Unity 2.2.9 ([https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088?aid=1011l4ehR))  
+- Anddroid (Pixel, Nexus 7, Zenfone, SC-04E) / iOS (iPhone8, iPhone6)
+- Unity >= 5.6.1f1
+- Scripting backend MONO / IL2CPP
+- [NatCam - WebCam API](https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154) 2.1f2
+- [NatShare - Mobile Sharing API](https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705) 1.0f3
+- [OpenCV for Unity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088) 2.2.9  
 
 
-Demo
------
-* Android [NatCamWithOpenCVForUnityExample.apk](https://github.com/EnoxSoftware/NatCamWithOpenCVForUnityExample/releases)
+## Demo
+- Android [NatCamWithOpenCVForUnityExample.apk](https://github.com/EnoxSoftware/NatCamWithOpenCVForUnityExample/releases)
 
 
 ## Setup
@@ -38,4 +35,3 @@ Demo
 ![screenshot01.jpg](screenshot01.jpg) 
 ![screenshot02.jpg](screenshot02.jpg) 
 ![screenshot03.jpg](screenshot03.jpg) 
-

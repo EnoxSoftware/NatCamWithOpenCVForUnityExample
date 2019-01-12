@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/NatCamWithOpenCVForUnityExample.unity
+    guid: 70b98c90e8c1b7e40862f0229eb0d567
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/IntegrationWithNatShareExample/IntegrationWithNatShareExample.unity
+    guid: f78ae37dff926a641be7ee414fcc2798
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/NatCamPreviewOnlyExample/NatCamPreviewOnlyExample.unity
+    guid: 45d5c81453669024799a34ff7a3d5b51
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/NatCamPreviewToMatExample/NatCamPreviewToMatExample.unity
+    guid: b7a31f20bafa7a14997597b75d05ea78
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/WebCamTextureOnlyExample/WebCamTextureOnlyExample.unity
+    guid: 247e68aaae4c3a4478a32b7849213734
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/WebCamTextureToMatExample/WebCamTextureToMatExample.unity
+    guid: b90a2bbbb939a5a45aab414e3f5a7a56
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/ShowLicense/ShowLicense.unity
+    guid: 8d1000b636372dc4e8ce1be55a9f0e58
+  - enabled: 1
+    path: Assets/NatCamWithOpenCVForUnityExample/ShowSystemInfo.unity
+    guid: 9ce31c29464a23a4380beca317fc5b01
+  m_configObjects: {}
