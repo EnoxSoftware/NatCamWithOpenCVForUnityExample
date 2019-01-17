@@ -1,9 +1,12 @@
-﻿using OpenCVForUnity;
-using System;
+﻿using System;
+using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.ImgprocModule;
 
-namespace NatCamWithOpenCVForUnityExample {
+namespace NatCamWithOpenCVForUnityExample
+{
 
-    public class ComicFilter {
+    public class ComicFilter
+    {
 
         Mat grayMat;
         Mat lineMat;
@@ -13,7 +16,8 @@ namespace NatCamWithOpenCVForUnityExample {
         byte[] grayPixels;
         byte[] maskPixels;
 
-        public void Process (Mat src, Mat dst) {
+        public void Process (Mat src, Mat dst)
+        {
             if (src == null)
                 throw new ArgumentNullException ("src == null");
             if (dst == null)
@@ -34,15 +38,15 @@ namespace NatCamWithOpenCVForUnityExample {
                 grayPixels = null;
                 maskPixels = null;
             }
-            grayMat = grayMat ?? new Mat(src.height(), src.width(), CvType.CV_8UC1);
-            lineMat = lineMat ?? new Mat(src.height(), src.width(), CvType.CV_8UC1);
-            maskMat = maskMat ?? new Mat(src.height(), src.width(), CvType.CV_8UC1);
+            grayMat = grayMat ?? new Mat (src.height (), src.width (), CvType.CV_8UC1);
+            lineMat = lineMat ?? new Mat (src.height (), src.width (), CvType.CV_8UC1);
+            maskMat = maskMat ?? new Mat (src.height (), src.width (), CvType.CV_8UC1);
             //create a striped background.
-            bgMat = new Mat (src.height(), src.width(), CvType.CV_8UC1, new Scalar (255));
-            for (int i = 0; i < bgMat.rows ()*2.5f; i=i+4) {
+            bgMat = new Mat (src.height (), src.width (), CvType.CV_8UC1, new Scalar (255));
+            for (int i = 0; i < bgMat.rows () * 2.5f; i = i + 4) {
                 Imgproc.line (bgMat, new Point (0, 0 + i), new Point (bgMat.cols (), -bgMat.cols () + i), new Scalar (0), 1);
             }
-            grayDstMat = grayDstMat ?? new Mat(src.height(), src.width(), CvType.CV_8UC1);
+            grayDstMat = grayDstMat ?? new Mat (src.height (), src.width (), CvType.CV_8UC1);
 
             grayPixels = grayPixels ?? new byte[grayMat.cols () * grayMat.rows () * grayMat.channels ()];
             maskPixels = maskPixels ?? new byte[maskMat.cols () * maskMat.rows () * maskMat.channels ()];
@@ -78,10 +82,11 @@ namespace NatCamWithOpenCVForUnityExample {
             Imgproc.cvtColor (grayDstMat, dst, Imgproc.COLOR_GRAY2RGBA);
         }
 
-        public void Dispose() {
+        public void Dispose ()
+        {
             foreach (var mat in new [] { grayMat, lineMat, maskMat, bgMat, grayDstMat })
                 if (mat != null)
-                    maskMat.Dispose();
+                    maskMat.Dispose ();
             grayDstMat =
             bgMat =
             maskMat =

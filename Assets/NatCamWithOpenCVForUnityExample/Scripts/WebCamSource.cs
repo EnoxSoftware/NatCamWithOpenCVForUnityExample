@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
-using OpenCVForUnity;
+using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.UnityUtils;
 
 namespace NatCamWithOpenCVForUnityExample
 {

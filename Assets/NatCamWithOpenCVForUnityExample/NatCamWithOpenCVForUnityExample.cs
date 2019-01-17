@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 using UnityEngine.UI;
+using System.Collections;
 using System;
 
 namespace NatCamWithOpenCVForUnityExample
@@ -103,7 +103,7 @@ namespace NatCamWithOpenCVForUnityExample
         void Start ()
         {
             exampleTitle.text = "NatCamWithOpenCVForUnity Example " + Application.version;
-            versionInfo.text = OpenCVForUnity.Core.NATIVE_LIBRARY_NAME + " " + OpenCVForUnity.Utils.getVersion () + " (" + OpenCVForUnity.Core.VERSION + ")";
+            versionInfo.text = OpenCVForUnity.CoreModule.Core.NATIVE_LIBRARY_NAME + " " + OpenCVForUnity.UnityUtils.Utils.getVersion () + " (" + OpenCVForUnity.CoreModule.Core.VERSION + ")";
             versionInfo.text += " / UnityEditor " + Application.unityVersion;
             versionInfo.text += " / ";
             #if UNITY_EDITOR

@@ -1,14 +1,12 @@
 ﻿using UnityEngine;
-using NatCamU.Core;
-using System.Collections.Generic;
-using System;
 using UnityEngine.UI;
-using System.Collections;
-using OpenCVForUnity;
-
-#if UNITY_5_3 || UNITY_5_3_OR_NEWER
 using UnityEngine.SceneManagement;
-#endif
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using NatCamU.Core;
+using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.UnityUtils;
 
 namespace NatCamWithOpenCVForUnityExample
 {

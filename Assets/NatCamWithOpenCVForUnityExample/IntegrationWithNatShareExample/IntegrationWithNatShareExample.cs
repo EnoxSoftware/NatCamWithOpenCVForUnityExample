@@ -4,9 +4,11 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using OpenCVForUnity;
 using NatCamU.Core;
 using NatShareU;
+using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.ImgprocModule;
+using OpenCVForUnity.UnityUtils;
 
 namespace NatCamWithOpenCVForUnityExample
 {
@@ -97,8 +99,8 @@ namespace NatCamWithOpenCVForUnityExample
             if (applyComicFilterToggle.isOn)
                 comicFilter.Process (frameMatrix, frameMatrix);
 
-            Imgproc.putText (frameMatrix, "[NatCam With OpenCVForUnity Example]", new Point (5, frameMatrix.rows () - 50), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
-            Imgproc.putText (frameMatrix, "- Integration With NatShare Example", new Point (5, frameMatrix.rows () - 10), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
+            Imgproc.putText (frameMatrix, "[NatCam With OpenCVForUnity Example]", new Point (5, frameMatrix.rows () - 50), Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
+            Imgproc.putText (frameMatrix, "- Integration With NatShare Example", new Point (5, frameMatrix.rows () - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
             // Convert to Texture2D
             Utils.fastMatToTexture2D (frameMatrix, texture, true, 0, false);
         }

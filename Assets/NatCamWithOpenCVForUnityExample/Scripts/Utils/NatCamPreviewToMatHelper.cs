@@ -2,15 +2,18 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
-using OpenCVForUnity;
 using NatCamU.Core;
+using OpenCVForUnity.UnityUtils.Helper;
+using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.UnityUtils;
 
 namespace NatCamWithOpenCVForUnityExample
 {
     /// <summary>
     /// NatCamPreview to mat helper.
-    /// v 1.0.4
+    /// v 1.0.5
     /// Depends on NatCam version 2.1f3 or later.
+    /// Depends on OpenCVForUnity version 2.3.3 or later.
     /// </summary>
     public class NatCamPreviewToMatHelper : WebCamTextureToMatHelper
     {
