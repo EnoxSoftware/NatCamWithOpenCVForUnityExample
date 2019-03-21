@@ -1,14 +1,13 @@
 using UnityEngine;
 using System;
 using OpenCVForUnity;
-using NatCamU.Core;
+using NatCam;
 
 namespace NatCamWithOpenCVForUnityExample {
 
     public class NatCamSource : ICameraSource {
 
         #region --Op vars--
-        private DeviceCamera camera;
         private Action startCallback, frameCallback;
         private byte[] sourceBuffer;
         #endregion
@@ -16,29 +15,35 @@ namespace NatCamWithOpenCVForUnityExample {
 
         #region --Client API--
 
-        public int width { get { return NatCam.Preview.width; } }
-        public int height { get { return NatCam.Preview.height; }}
-        public Texture Preview { get { return NatCam.Preview; }}
-        public DeviceCamera ActiveCamera { get { return NatCam.Camera; }}
+        public int width {
+            get { return Preview.width; }
+        }
+        public int height {
+            get { return Preview.height; }
+        }
+        public Texture Preview { get; private set; }
+        public DeviceCamera ActiveCamera { get; private set; }
 
         public NatCamSource (int width, int height, int framerate, bool front) {
-            camera = front ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
-            camera.PreviewResolution = new Vector2Int(width, height);
-            camera.Framerate = framerate;
+            ActiveCamera = front ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            ActiveCamera.PreviewResolution = new Vector2Int(width, height);
+            ActiveCamera.Framerate = framerate;
         }
 
         public void Dispose () {
-            NatCam.StopPreview();
+            ActiveCamera.StopPreview();
+            ActiveCamera = null;
+            Preview = null;
             sourceBuffer = null;
         }
 
         public void StartPreview (Action startCallback, Action frameCallback) {
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
-            NatCam.StartPreview(
-                camera,
-                () => {
-                    sourceBuffer = new byte[width * height * 4];
+            ActiveCamera.StartPreview(
+                preview => {
+                    this.Preview = preview;
+                    sourceBuffer = new byte[preview.width * preview.height * 4];
                     startCallback();
                 },
                 frameCallback
@@ -46,18 +51,19 @@ namespace NatCamWithOpenCVForUnityExample {
         }
 
         public void CaptureFrame (Mat matrix) {
-            NatCam.CaptureFrame(sourceBuffer);
+            ActiveCamera.CaptureFrame(sourceBuffer);
             Utils.copyToMat(sourceBuffer, matrix);
             Core.flip(matrix, matrix, 0);
         }
 
         public void CaptureFrame (Color32[] pixelBuffer) {
-            NatCam.CaptureFrame(sourceBuffer);
+            ActiveCamera.CaptureFrame(sourceBuffer);
             Buffer.BlockCopy(sourceBuffer, 0, pixelBuffer, 0, sourceBuffer.Length);
         }
 
         public void SwitchCamera () {
-            camera = ++camera % DeviceCamera.Cameras.Length;
+            ActiveCamera.StopPreview();
+            ActiveCamera = ActiveCamera.IsFrontFacing ? DeviceCamera.RearCamera : DeviceCamera.FrontCamera;
             StartPreview(startCallback, frameCallback);
         }
         #endregion
