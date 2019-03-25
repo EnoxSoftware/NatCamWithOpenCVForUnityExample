@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
-using NatCamU.Core;
+using NatCam;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 
@@ -17,21 +17,22 @@ namespace NatCamWithOpenCVForUnityExample
         private Action startCallback, frameCallback;
         private byte[] sourceBuffer;
         private int requestedWidth, requestedHeight, requestedFramerate;
+        private int cameraIndex;
 
         #endregion
 
 
         #region --Client API--
 
-        public int width { get { return NatCam.Preview.width; } }
+        public int width { get; private set; }
 
-        public int height { get { return NatCam.Preview.height; } }
+        public int height { get; private set; }
 
-        public bool isRunning { get { return NatCam.IsRunning; } }
+        public bool isRunning { get { return camera.IsRunning; } }
 
-        public Texture Preview { get { return NatCam.Preview; } }
+        public Texture preview { get; private set; }
 
-        public DeviceCamera ActiveCamera { get { return NatCam.Camera; } }
+        public DeviceCamera activeCamera { get { return camera; } }
 
         public NatCamSource (int width, int height, int framerate, bool front)
         {
@@ -39,31 +40,37 @@ namespace NatCamWithOpenCVForUnityExample
             this.requestedHeight = height;
             this.requestedFramerate = framerate;
 
-            camera = front ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            for (; cameraIndex < DeviceCamera.Cameras.Length; cameraIndex++)
+                if (DeviceCamera.Cameras [cameraIndex].IsFrontFacing == front)
+                    break;
 
-            if (!camera) {
-                Debug.LogError ((front ? "front" : "rear") + " camera does not exist. Consider using " + (front ? "rear" : "front") + " camera.");
+            if (cameraIndex == DeviceCamera.Cameras.Length) {
+                Debug.LogError ("Camera is null. Consider using " + (front ? "rear" : "front") + " camera.");
                 return;
             }
 
+            camera = DeviceCamera.Cameras [cameraIndex];
             camera.PreviewResolution = new Vector2Int (width, height);
             camera.Framerate = framerate;
         }
 
         public void Dispose ()
         {
-            if (NatCam.IsRunning)
-                NatCam.StopPreview ();
+            if (camera.IsRunning)
+                camera.StopPreview ();
             sourceBuffer = null;
+            preview = null;
         }
 
         public void StartPreview (Action startCallback, Action frameCallback)
         {
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
-            NatCam.StartPreview (
-                camera,
-                () => {
+            camera.StartPreview (
+                (Texture preview) => {
+                    width = preview.width;
+                    height = preview.height;
+                    this.preview = preview;
                     sourceBuffer = new byte[width * height * 4];
                     startCallback ();
                 },
@@ -73,14 +80,14 @@ namespace NatCamWithOpenCVForUnityExample
 
         public void CaptureFrame (Mat matrix)
         {
-            NatCam.CaptureFrame (sourceBuffer);
+            camera.CaptureFrame (sourceBuffer);
             Utils.copyToMat (sourceBuffer, matrix);
             Core.flip (matrix, matrix, 0);
         }
 
         public void CaptureFrame (Color32[] pixelBuffer)
         {
-            NatCam.CaptureFrame (sourceBuffer);
+            camera.CaptureFrame (sourceBuffer);
 
             GCHandle pin = GCHandle.Alloc (pixelBuffer, GCHandleType.Pinned);
             Marshal.Copy (sourceBuffer, 0, pin.AddrOfPinnedObject (), sourceBuffer.Length);
@@ -89,10 +96,11 @@ namespace NatCamWithOpenCVForUnityExample
 
         public void SwitchCamera ()
         {
-            if (NatCam.IsRunning)
-                NatCam.StopPreview ();
-            int index = camera;
-            camera = ++index % DeviceCamera.Cameras.Length;
+            if (camera.IsRunning)
+                camera.StopPreview ();
+
+            cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
+            camera = DeviceCamera.Cameras [cameraIndex];
             camera.PreviewResolution = new Vector2Int (requestedWidth, requestedHeight);
             camera.Framerate = requestedFramerate;
             StartPreview (startCallback, frameCallback);

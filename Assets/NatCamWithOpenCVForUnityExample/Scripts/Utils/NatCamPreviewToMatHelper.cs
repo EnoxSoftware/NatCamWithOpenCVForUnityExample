@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
-using NatCamU.Core;
+using NatCam;
 using OpenCVForUnity.UnityUtils.Helper;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
@@ -11,8 +11,8 @@ namespace NatCamWithOpenCVForUnityExample
 {
     /// <summary>
     /// NatCamPreview to mat helper.
-    /// v 1.0.5
-    /// Depends on NatCam version 2.1f3 or later.
+    /// v 1.0.6
+    /// Depends on NatCam version 2.2 or later.
     /// Depends on OpenCVForUnity version 2.3.3 or later.
     /// </summary>
     public class NatCamPreviewToMatHelper : WebCamTextureToMatHelper
@@ -31,44 +31,43 @@ namespace NatCamWithOpenCVForUnityExample
         protected bool didUpdateThisFrame = false;
 
         protected DeviceCamera natCamDeviceCamera;
+        protected Texture preview;
 
         /// <summary>
         /// Method called when the camera preview starts
         /// </summary>
-        public virtual void OnStart ()
+        public virtual void OnStart (Texture preview)
         {
+            this.preview = preview;
 
-            if (colors == null || colors.Length != NatCam.Preview.width * NatCam.Preview.height)
-                colors = new Color32[NatCam.Preview.width * NatCam.Preview.height];
+            if (colors == null || colors.Length != preview.width * preview.height)
+                colors = new Color32[preview.width * preview.height];
 
             // Create pixel buffer
-            if (pixelBuffer == null || pixelBuffer.Length == NatCam.Preview.width * NatCam.Preview.height * 4) {
-                pixelBuffer = new byte[NatCam.Preview.width * NatCam.Preview.height * 4];
+            if (pixelBuffer == null || pixelBuffer.Length == preview.width * preview.height * 4) {
+                pixelBuffer = new byte[preview.width * preview.height * 4];
             }
 
             if (hasInitDone) {
-                if (frameMat.width () != NatCam.Preview.width || frameMat.height () != NatCam.Preview.height) {
+                if (onDisposed != null)
+                    onDisposed.Invoke ();
 
-                    if (onDisposed != null)
-                        onDisposed.Invoke ();
-
-                    if (frameMat != null) {
-                        frameMat.Dispose ();
-                        frameMat = null;
-                    }
-                    if (rotatedFrameMat != null) {
-                        rotatedFrameMat.Dispose ();
-                        rotatedFrameMat = null;
-                    }
-
-                    frameMat = new Mat (NatCam.Preview.height, NatCam.Preview.width, CvType.CV_8UC4, new Scalar (0, 0, 0, 255));
-
-                    if (rotate90Degree)
-                        rotatedFrameMat = new Mat (NatCam.Preview.width, NatCam.Preview.height, CvType.CV_8UC4, new Scalar (0, 0, 0, 255));
-
-                    if (onInitialized != null)
-                        onInitialized.Invoke ();
+                if (frameMat != null) {
+                    frameMat.Dispose ();
+                    frameMat = null;
                 }
+                if (rotatedFrameMat != null) {
+                    rotatedFrameMat.Dispose ();
+                    rotatedFrameMat = null;
+                }
+
+                frameMat = new Mat (preview.height, preview.width, CvType.CV_8UC4, new Scalar (0, 0, 0, 255));
+
+                if (rotate90Degree)
+                    rotatedFrameMat = new Mat (preview.width, preview.height, CvType.CV_8UC4, new Scalar (0, 0, 0, 255));
+
+                if (onInitialized != null)
+                    onInitialized.Invoke ();
             }
         }
 
@@ -88,10 +87,7 @@ namespace NatCamWithOpenCVForUnityExample
                 // Catch the orientation change of the screen and correct the mat image to the correct direction.
                 if (screenOrientation != Screen.orientation && (screenWidth != Screen.width || screenHeight != Screen.height)) {
 
-                    if (onDisposed != null)
-                        onDisposed.Invoke ();
-
-                    if (!NatCam.IsRunning) {
+                    if (!natCamDeviceCamera.IsRunning) {
 
                         bool isRotatedFrame = false;
                         DeviceOrientation oldOrientation = (DeviceOrientation)(int)screenOrientation;
@@ -131,12 +127,27 @@ namespace NatCamWithOpenCVForUnityExample
                         }
                     }
 
+                    #if UNITY_IOS && !UNITY_EDITOR
+                    if (onDisposed != null)
+                        onDisposed.Invoke ();
+                    if (onInitialized != null)
+                        onInitialized.Invoke ();
+                    #elif UNITY_ANDROID && !UNITY_EDITOR
+                    if (natCamDeviceCamera.IsRunning) {
+                        natCamDeviceCamera.StopPreview ();
+                        natCamDeviceCamera.StartPreview (OnStart, OnFrame);
+                    } else {
+                        if (onDisposed != null)
+                            onDisposed.Invoke ();
+                        if (onInitialized != null)
+                            onInitialized.Invoke ();
+                    }
+                    #endif
+
                     screenOrientation = Screen.orientation;
                     screenWidth = Screen.width;
                     screenHeight = Screen.height;
 
-                    if (onInitialized != null)
-                        onInitialized.Invoke ();
                 } else {
                     screenWidth = Screen.width;
                     screenHeight = Screen.height;
@@ -154,10 +165,6 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         protected override IEnumerator _Initialize ()
         {
-            if (!NatCam.Implementation.HasPermissions) {
-                Debug.LogError ("NatCam.Implementation.HasPermissions == false");
-            }
-
             if (hasInitDone) {
                 ReleaseResources ();
 
@@ -167,7 +174,6 @@ namespace NatCamWithOpenCVForUnityExample
 
             isInitWaiting = true;
 
-
             // Creates the camera
             if (!String.IsNullOrEmpty (requestedDeviceName)) {
                 int requestedDeviceIndex = -1;
@@ -175,12 +181,21 @@ namespace NatCamWithOpenCVForUnityExample
                     if (requestedDeviceIndex >= 0 && requestedDeviceIndex < DeviceCamera.Cameras.Length) {
                         natCamDeviceCamera = DeviceCamera.Cameras [requestedDeviceIndex];
                     }
+                } else {                    
+                    for (int cameraIndex = 0; cameraIndex < DeviceCamera.Cameras.Length; cameraIndex++) {
+                        if (DeviceCamera.Cameras [cameraIndex].UniqueID == requestedDeviceName) {
+                            natCamDeviceCamera = DeviceCamera.Cameras [cameraIndex];
+                            break;
+                        }
+                    }
                 }
                 if (natCamDeviceCamera == null)
                     Debug.Log ("Cannot find camera device " + requestedDeviceName + ".");
             }
-
-            natCamDeviceCamera = requestedIsFrontFacing ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+                
+            if (natCamDeviceCamera == null) {
+                natCamDeviceCamera = requestedIsFrontFacing ? DeviceCamera.FrontCamera : DeviceCamera.RearCamera;
+            }
 
             if (natCamDeviceCamera == null) {
                 if (DeviceCamera.Cameras.Length > 0) {
@@ -195,7 +210,7 @@ namespace NatCamWithOpenCVForUnityExample
                 }
             }
 
-            natCamDeviceCamera.Framerate = requestedFPS;
+            natCamDeviceCamera.Framerate = (int)requestedFPS;
 
             // Set the camera's preview resolution
             natCamDeviceCamera.PreviewResolution = new Vector2Int (requestedWidth, requestedHeight);
@@ -203,7 +218,7 @@ namespace NatCamWithOpenCVForUnityExample
             // Starts the camera
             // Register callback for when the preview starts
             // Register for preview updates
-            NatCam.StartPreview (natCamDeviceCamera, OnStart, OnFrame);
+            natCamDeviceCamera.StartPreview (OnStart, OnFrame);
 
             int initFrameCount = 0;
             bool isTimeout = false;
@@ -213,18 +228,18 @@ namespace NatCamWithOpenCVForUnityExample
                     isTimeout = true;
                     break;
                 } else if (didUpdateThisFrame) {
+                    
+                    Debug.Log ("NatCamPreviewToMatHelper:: " + "UniqueID:" + natCamDeviceCamera.UniqueID + " width:" + preview.width + " height:" + preview.height + " fps:" + natCamDeviceCamera.Framerate
+                    + " isFrongFacing:" + natCamDeviceCamera.IsFrontFacing);
 
-                    Debug.Log ("NatCamPreviewToMatHelper:: " + " width:" + NatCam.Preview.width + " height:" + NatCam.Preview.height + " fps:" + NatCam.Camera.Framerate
-                    + " isFrongFacing:" + NatCam.Camera.IsFrontFacing);
-
-                    frameMat = new Mat (NatCam.Preview.height, NatCam.Preview.width, CvType.CV_8UC4);
+                    frameMat = new Mat (preview.height, preview.width, CvType.CV_8UC4);
 
                     screenOrientation = Screen.orientation;
                     screenWidth = Screen.width;
                     screenHeight = Screen.height;
 
                     if (rotate90Degree)
-                        rotatedFrameMat = new Mat (NatCam.Preview.width, NatCam.Preview.height, CvType.CV_8UC4);
+                        rotatedFrameMat = new Mat (preview.width, preview.height, CvType.CV_8UC4);
 
                     isInitWaiting = false;
                     hasInitDone = true;
@@ -241,7 +256,7 @@ namespace NatCamWithOpenCVForUnityExample
             }
 
             if (isTimeout) {
-                NatCam.StopPreview ();
+                natCamDeviceCamera.StopPreview ();
 
                 isInitWaiting = false;
                 initCoroutine = null;
@@ -256,8 +271,8 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         public override void Play ()
         {
-            if (hasInitDone && !NatCam.IsRunning)
-                NatCam.StartPreview (natCamDeviceCamera, OnStart, OnFrame);
+            if (hasInitDone && !natCamDeviceCamera.IsRunning)
+                natCamDeviceCamera.StartPreview (OnStart, OnFrame);
         }
 
         /// <summary>
@@ -265,8 +280,8 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         public override void Pause ()
         {
-            if (hasInitDone && NatCam.IsRunning)
-                NatCam.StopPreview ();
+            if (hasInitDone && natCamDeviceCamera.IsRunning)
+                natCamDeviceCamera.StopPreview ();
         }
 
         /// <summary>
@@ -274,8 +289,8 @@ namespace NatCamWithOpenCVForUnityExample
         /// </summary>
         public override void Stop ()
         {
-            if (hasInitDone && NatCam.IsRunning)
-                NatCam.StopPreview ();
+            if (hasInitDone && natCamDeviceCamera.IsRunning)
+                natCamDeviceCamera.StopPreview ();
         }
 
         /// <summary>
@@ -284,7 +299,7 @@ namespace NatCamWithOpenCVForUnityExample
         /// <returns><c>true</c>, if the active camera is playing, <c>false</c> otherwise.</returns>
         public override bool IsPlaying ()
         {
-            return hasInitDone ? NatCam.IsRunning : false;
+            return hasInitDone ? natCamDeviceCamera.IsRunning : false;
         }
 
         /// <summary>
@@ -342,12 +357,12 @@ namespace NatCamWithOpenCVForUnityExample
         /// <returns>The mat of the current frame.</returns>
         public override Mat GetMat ()
         {
-            if (!hasInitDone || !NatCam.IsRunning || pixelBuffer == null) {
+            if (!hasInitDone || !natCamDeviceCamera.IsRunning || pixelBuffer == null) {
                 return (rotatedFrameMat != null) ? rotatedFrameMat : frameMat;
             }
-                
+
             // Set `flip` flag to true because OpenCV uses inverted Y-coordinate system
-            NatCam.CaptureFrame (pixelBuffer);
+            natCamDeviceCamera.CaptureFrame (pixelBuffer);
             Utils.copyToMat (pixelBuffer, frameMat);
 
             FlipMat (frameMat, flipVertical, flipHorizontal);
@@ -404,10 +419,11 @@ namespace NatCamWithOpenCVForUnityExample
             isInitWaiting = false;
             hasInitDone = false;
 
-            if (NatCam.IsRunning)
-                NatCam.StopPreview ();
+            if (natCamDeviceCamera.IsRunning)
+                natCamDeviceCamera.StopPreview ();
 
             natCamDeviceCamera = null;
+            preview = null;
 
             pixelBuffer = null;
             didUpdateThisFrame = false;

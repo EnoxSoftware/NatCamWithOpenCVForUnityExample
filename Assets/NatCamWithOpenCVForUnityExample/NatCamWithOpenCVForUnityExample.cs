@@ -100,8 +100,9 @@ namespace NatCamWithOpenCVForUnityExample
             Application.targetFrameRate = 60;
         }
 
-        void Start ()
+        IEnumerator Start ()
         {
+
             exampleTitle.text = "NatCamWithOpenCVForUnity Example " + Application.version;
             versionInfo.text = OpenCVForUnity.CoreModule.Core.NATIVE_LIBRARY_NAME + " " + OpenCVForUnity.UnityUtils.Utils.getVersion () + " (" + OpenCVForUnity.CoreModule.Core.VERSION + ")";
             versionInfo.text += " / UnityEditor " + Application.unityVersion;
@@ -138,7 +139,29 @@ namespace NatCamWithOpenCVForUnityExample
             cameraResolutionDropdown.value = (int)cameraResolution;
             cameraFPSDropdown.value = (int)cameraFramerate;
             performImageProcessingEachTimeToggle.isOn = performImageProcessingEachTime;
+
+
+            #if UNITY_ANDROID && !UNITY_EDITOR
+            yield return RequestAndroidPermission ("android.permission.WRITE_EXTERNAL_STORAGE");
+            yield return RequestAndroidPermission ("android.permission.CAMERA");
+            #endif
+
+            yield return null;
         }
+
+        #if UNITY_ANDROID && !UNITY_EDITOR
+        private IEnumerator RequestAndroidPermission(string permission)
+        {
+            if (!RuntimePermissionHelper.HasPermission(permission))
+            {
+                if (RuntimePermissionHelper.ShouldShowRequestPermissionRationale(permission))
+                {
+                    RuntimePermissionHelper.RequestPermission(new string[] { permission });
+                }
+            }
+            yield return new WaitForSeconds(0.5f);
+        }
+        #endif
 
         #endregion
 

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using NatCamU.Core;
+using NatCam;
 using NatShareU;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
@@ -69,7 +69,7 @@ namespace NatCamWithOpenCVForUnityExample
             );
             // Display preview
             rawImage.texture = texture;
-            aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
+            aspectFitter.aspectRatio = cameraSource.width / (float)cameraSource.height;
             Debug.Log ("NatCam camera source started with resolution: " + cameraSource.width + "x" + cameraSource.height);
 
             if (fpsMonitor != null) {

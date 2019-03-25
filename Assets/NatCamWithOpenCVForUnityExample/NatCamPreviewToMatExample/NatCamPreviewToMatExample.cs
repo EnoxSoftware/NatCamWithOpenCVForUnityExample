@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using NatCamU.Core;
+using NatCam;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 
@@ -83,27 +83,29 @@ namespace NatCamWithOpenCVForUnityExample
             );
             // Display preview
             rawImage.texture = texture;
-            aspectFitter.aspectRatio = NatCam.Preview.width / (float)NatCam.Preview.height;
+            aspectFitter.aspectRatio = cameraSource.width / (float)cameraSource.height;
             Debug.Log ("NatCam camera source started with resolution: " + cameraSource.width + "x" + cameraSource.height);
             // Log camera properties
             var cameraProps = new Dictionary<string, string> ();
-            cameraProps.Add ("IsFrontFacing", NatCam.Camera.IsFrontFacing.ToString ());
-            cameraProps.Add ("Framerate", NatCam.Camera.Framerate.ToString ());
-            cameraProps.Add ("PreviewResolution", NatCam.Camera.PreviewResolution.x + "x" + NatCam.Camera.PreviewResolution.y);
-            cameraProps.Add ("PhotoResolution", NatCam.Camera.PhotoResolution.x + "x" + NatCam.Camera.PhotoResolution.y);
-            cameraProps.Add ("ExposureLock", NatCam.Camera.ExposureLock.ToString ());
-            cameraProps.Add ("ExposureBias", NatCam.Camera.ExposureBias.ToString ());
-            cameraProps.Add ("MinExposureBias", NatCam.Camera.MinExposureBias.ToString ());
-            cameraProps.Add ("MaxExposureBias", NatCam.Camera.MaxExposureBias.ToString ());
-            cameraProps.Add ("IsFlashSupported", NatCam.Camera.IsFlashSupported.ToString ());
-            cameraProps.Add ("FlashMode", NatCam.Camera.FlashMode.ToString ());
-            cameraProps.Add ("FocusLock", NatCam.Camera.FocusLock.ToString ());
-            cameraProps.Add ("HorizontalFOV", NatCam.Camera.HorizontalFOV.ToString ());
-            cameraProps.Add ("VerticalFOV", NatCam.Camera.VerticalFOV.ToString ());
-            cameraProps.Add ("IsTorchSupported", NatCam.Camera.IsTorchSupported.ToString ());
-            cameraProps.Add ("TorchEnabled", NatCam.Camera.TorchEnabled.ToString ());
-            cameraProps.Add ("MaxZoomRatio", NatCam.Camera.MaxZoomRatio.ToString ());
-            cameraProps.Add ("ZoomRatio", NatCam.Camera.ZoomRatio.ToString ());
+            cameraProps.Add ("IsFrontFacing", cameraSource.activeCamera.IsFrontFacing.ToString ());
+            cameraProps.Add ("Framerate", cameraSource.activeCamera.Framerate.ToString ());
+            cameraProps.Add ("PreviewResolution", cameraSource.activeCamera.PreviewResolution.x + "x" + cameraSource.activeCamera.PreviewResolution.y);
+            cameraProps.Add ("PhotoResolution", cameraSource.activeCamera.PhotoResolution.x + "x" + cameraSource.activeCamera.PhotoResolution.y);
+            cameraProps.Add ("ExposureLock", cameraSource.activeCamera.ExposureLock.ToString ());
+            cameraProps.Add ("ExposureBias", cameraSource.activeCamera.ExposureBias.ToString ());
+            cameraProps.Add ("MinExposureBias", cameraSource.activeCamera.MinExposureBias.ToString ());
+            cameraProps.Add ("MaxExposureBias", cameraSource.activeCamera.MaxExposureBias.ToString ());
+            cameraProps.Add ("IsFlashSupported", cameraSource.activeCamera.IsFlashSupported.ToString ());
+            cameraProps.Add ("FlashMode", cameraSource.activeCamera.FlashMode.ToString ());
+            cameraProps.Add ("FocusLock", cameraSource.activeCamera.FocusLock.ToString ());
+            cameraProps.Add ("HorizontalFOV", cameraSource.activeCamera.HorizontalFOV.ToString ());
+            cameraProps.Add ("VerticalFOV", cameraSource.activeCamera.VerticalFOV.ToString ());
+            cameraProps.Add ("IsTorchSupported", cameraSource.activeCamera.IsTorchSupported.ToString ());
+            cameraProps.Add ("TorchEnabled", cameraSource.activeCamera.TorchEnabled.ToString ());
+            cameraProps.Add ("MaxZoomRatio", cameraSource.activeCamera.MaxZoomRatio.ToString ());
+            cameraProps.Add ("ZoomRatio", cameraSource.activeCamera.ZoomRatio.ToString ());
+            cameraProps.Add ("UniqueID", cameraSource.activeCamera.UniqueID.ToString ());
+            cameraProps.Add ("WhiteBalanceLock", cameraSource.activeCamera.WhiteBalanceLock.ToString ());
             Debug.Log ("# Active Camera Properties #####################");
             foreach (string key in cameraProps.Keys)
                 Debug.Log (key + ": " + cameraProps [key]);
@@ -115,7 +117,7 @@ namespace NatCamWithOpenCVForUnityExample
                 fpsMonitor.Add ("orientation", Screen.orientation.ToString ());
 
                 fpsMonitor.boxWidth = 200;
-                fpsMonitor.boxHeight = 680;
+                fpsMonitor.boxHeight = 760;
                 fpsMonitor.LocateGUI ();
 
                 foreach (string key in cameraProps.Keys)
@@ -144,7 +146,7 @@ namespace NatCamWithOpenCVForUnityExample
                 cameraSource.CaptureFrame (frameMatrix);
                 break;
             case MatCaptureMethod.BlitWithReadPixels:
-                Utils.textureToTexture2D (cameraSource.Preview, texture);
+                Utils.textureToTexture2D (cameraSource.preview, texture);
                 Utils.copyToMat (texture.GetRawTextureData (), frameMatrix);
                 Core.flip (frameMatrix, frameMatrix, 0);
                 break;
@@ -153,7 +155,7 @@ namespace NatCamWithOpenCVForUnityExample
                     Debug.LogError ("This device does not support Graphics::CopyTexture");
                     return;
                 }
-                Graphics.CopyTexture (NatCam.Preview, texture);
+                Graphics.CopyTexture (cameraSource.preview, texture);
                 Utils.copyToMat (texture.GetRawTextureData (), frameMatrix);
                 Core.flip (frameMatrix, frameMatrix, 0);
                 break;

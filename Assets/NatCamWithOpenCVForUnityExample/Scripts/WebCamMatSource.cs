@@ -32,7 +32,7 @@ namespace NatCamWithOpenCVForUnityExample
 
         public bool isRunning { get { return (webCamTexture == null) ? false : webCamTexture.isPlaying; } }
 
-        public WebCamDevice ActiveCamera { get { return WebCamTexture.devices [cameraIndex]; } }
+        public WebCamDevice activeCamera { get { return WebCamTexture.devices [cameraIndex]; } }
 
         public WebCamMatSource (int width, int height, int framerate = 30, bool front = false)
         {
@@ -49,11 +49,11 @@ namespace NatCamWithOpenCVForUnityExample
                     break;
             
             if (cameraIndex == WebCamTexture.devices.Length) {
-                Debug.LogError ((front ? "front" : "rear") + " camera does not exist. Consider using " + (front ? "rear" : "front") + " camera.");
+                Debug.LogError ("Camera is null. Consider using " + (front ? "rear" : "front") + " camera.");
                 return;
             }
 
-            this.webCamTexture = new WebCamTexture (ActiveCamera.name, width, height, framerate);
+            this.webCamTexture = new WebCamTexture (activeCamera.name, width, height, framerate);
         }
 
         public void Dispose ()
@@ -98,14 +98,14 @@ namespace NatCamWithOpenCVForUnityExample
             Dispose ();
             cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
 
-            bool front = ActiveCamera.isFrontFacing;
+            bool front = activeCamera.isFrontFacing;
             int framerate = requestedFramerate;
             #if UNITY_ANDROID && !UNITY_EDITOR
             // Set the requestedFPS parameter to avoid the problem of the WebCamTexture image becoming low light on some Android devices. (Pixel, Pixel 2)
             // https://forum.unity.com/threads/released-opencv-for-unity.277080/page-33#post-3445178
             framerate = front ? 15 : framerate;
             #endif
-            webCamTexture = new WebCamTexture (ActiveCamera.name, requestedWidth, requestedHeight, framerate);
+            webCamTexture = new WebCamTexture (activeCamera.name, requestedWidth, requestedHeight, framerate);
             StartPreview (startCallback, frameCallback);
         }
 
@@ -146,7 +146,7 @@ namespace NatCamWithOpenCVForUnityExample
 
 
             int flipCode = 0;
-            if (ActiveCamera.isFrontFacing) {
+            if (activeCamera.isFrontFacing) {
                 if (webCamTexture.videoRotationAngle == 0 || webCamTexture.videoRotationAngle == 90) {
                     flipCode = -1;
                 } else if (webCamTexture.videoRotationAngle == 180 || webCamTexture.videoRotationAngle == 270) {
@@ -158,7 +158,7 @@ namespace NatCamWithOpenCVForUnityExample
                 }
             }
 
-            if (rotate90Degree && ActiveCamera.isFrontFacing) {
+            if (rotate90Degree && activeCamera.isFrontFacing) {
                 if (flipCode == int.MinValue) {
                     flipCode = -1;
                 } else if (flipCode == 0) {
