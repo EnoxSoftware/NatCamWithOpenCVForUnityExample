@@ -3,16 +3,20 @@
 - An example of replacing WebCamTextureToMatHelper with NatCamPreviewToMatHelper.
 - An example of native sharing and save to the camera roll using NatShare API.
 
+
+<!--
 ## Benchmark
 ![benchmark.jpg](benchmark.jpg) 
+-->
+
 
 ## Environment
 - Anddroid (Pixel, Nexus 7, Zenfone, SC-04E) / iOS (iPhone8, iPhone6)
-- Unity >= 5.6.1f1
+- Unity >= 2017.1+
 - Scripting backend MONO / IL2CPP
-- [NatCam - WebCam API](https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154) 2.1f2
-- [NatShare - Mobile Sharing API](https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705) 1.0f3
-- [OpenCV for Unity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088) 2.2.9  
+- [NatCam - WebCam API](https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154?aid=1011l4ehR) 2.2+
+- [NatShare - Mobile Sharing API](https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705?aid=1011l4ehR) 1.1f3+
+- [OpenCV for Unity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088?aid=1011l4ehR) 2.3.4+
 
 
 ## Demo
