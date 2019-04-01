@@ -126,23 +126,11 @@ namespace NatCamWithOpenCVForUnityExample
                                 rotatedFrameMat = new Mat (height, width, CvType.CV_8UC4, new Scalar (0, 0, 0, 255));
                         }
                     }
-
-                    #if UNITY_IOS && !UNITY_EDITOR
+                        
                     if (onDisposed != null)
                         onDisposed.Invoke ();
                     if (onInitialized != null)
                         onInitialized.Invoke ();
-                    #elif UNITY_ANDROID && !UNITY_EDITOR
-                    if (natCamDeviceCamera.IsRunning) {
-                        natCamDeviceCamera.StopPreview ();
-                        natCamDeviceCamera.StartPreview (OnStart, OnFrame);
-                    } else {
-                        if (onDisposed != null)
-                            onDisposed.Invoke ();
-                        if (onInitialized != null)
-                            onInitialized.Invoke ();
-                    }
-                    #endif
 
                     screenOrientation = Screen.orientation;
                     screenWidth = Screen.width;
