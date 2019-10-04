@@ -36,7 +36,7 @@ namespace NatCamWithOpenCVForUnityExample
             get { return previewTexture; }
         }
 
-        public CameraDevice cameraDevice {
+        public CameraDevice activeCamera {
             get; private set;
         }
 
