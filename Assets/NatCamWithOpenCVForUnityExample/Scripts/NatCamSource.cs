@@ -1,9 +1,14 @@
-using UnityEngine;
-using System;
-using System.Runtime.InteropServices;
 using NatCam;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
+using System;
+using System.Runtime.InteropServices;
+using UnityEngine;
+
+#if OPENCV_USE_UNSAFE_CODE && UNITY_2018_2_OR_NEWER
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Collections;
+#endif
 
 namespace NatCamWithOpenCVForUnityExample
 {
@@ -13,9 +18,7 @@ namespace NatCamWithOpenCVForUnityExample
 
         #region --Op vars--
 
-        private DeviceCamera camera;
         private Action startCallback, frameCallback;
-        private byte[] sourceBuffer;
         private int requestedWidth, requestedHeight, requestedFramerate;
         private int cameraIndex;
 
@@ -28,82 +31,162 @@ namespace NatCamWithOpenCVForUnityExample
 
         public int height { get; private set; }
 
-        public bool isRunning { get { return camera.IsRunning; } }
+        public bool isRunning { get { return activeCamera ? activeCamera.IsRunning : false; } }
 
-        public Texture preview { get; private set; }
+        public bool isFrontFacing { get { return activeCamera ? activeCamera.IsFrontFacing : false; } }
 
-        public DeviceCamera activeCamera { get { return camera; } }
+        public Texture2D preview { get; private set; }
 
-        public NatCamSource (int width, int height, int framerate, bool front)
+        public CameraDevice activeCamera { get; private set; }
+
+        public NatCamSource(int width, int height, int framerate, bool front)
         {
-            this.requestedWidth = width;
-            this.requestedHeight = height;
-            this.requestedFramerate = framerate;
+            requestedWidth = width;
+            requestedHeight = height;
+            requestedFramerate = framerate;
 
-            for (; cameraIndex < DeviceCamera.Cameras.Length; cameraIndex++)
-                if (DeviceCamera.Cameras [cameraIndex].IsFrontFacing == front)
+            // Check permission
+            var devices = CameraDevice.GetDevices();
+            if (devices == null)
+            {
+                Debug.Log("User has not granted camera permission");
+                return;
+            }
+            // Pick camera
+            for (; cameraIndex < devices.Length; cameraIndex++)
+                if (devices[cameraIndex].IsFrontFacing == front)
                     break;
 
-            if (cameraIndex == DeviceCamera.Cameras.Length) {
-                Debug.LogError ("Camera is null. Consider using " + (front ? "rear" : "front") + " camera.");
+            if (cameraIndex == devices.Length)
+            {
+                Debug.LogError("Camera is null. Consider using " + (front ? "rear" : "front") + " camera.");
                 return;
             }
 
-            camera = DeviceCamera.Cameras [cameraIndex];
-            camera.PreviewResolution = new Vector2Int (width, height);
-            camera.Framerate = framerate;
+            activeCamera = devices[cameraIndex];
+            activeCamera.PreviewResolution = new Resolution { width = requestedWidth, height = requestedHeight };
+            activeCamera.Framerate = requestedFramerate;
         }
 
-        public void Dispose ()
+        public void Dispose()
         {
-            if (camera.IsRunning)
-                camera.StopPreview ();
-            sourceBuffer = null;
+            if (activeCamera != null && activeCamera.IsRunning)
+            {
+
+                //Debug.Log("##### activeCamera.StopPreview() #####");
+
+                activeCamera.StopPreview();
+                activeCamera = null;
+            }
+            cameraIndex = 0;
             preview = null;
+            this.startCallback = null;
+            this.frameCallback = null;
+
         }
 
-        public void StartPreview (Action startCallback, Action frameCallback)
+        public void StartPreview(Action startCallback, Action frameCallback)
         {
+            if (activeCamera == null)
+                return;
+
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
-            camera.StartPreview (
-                (Texture preview) => {
+            activeCamera.StartPreview(
+                (Texture2D preview) =>
+                {
                     width = preview.width;
                     height = preview.height;
                     this.preview = preview;
-                    sourceBuffer = new byte[width * height * 4];
-                    startCallback ();
+                    startCallback();
                 },
-                frameCallback
+                (long timestamp) =>
+                {
+                    frameCallback();
+                }
             );
+
+            //Debug.Log("##### activeCamera.StartPreview() #####");
+
         }
 
-        public void CaptureFrame (Mat matrix)
+        public void CaptureFrame(Mat matrix)
         {
-            camera.CaptureFrame (sourceBuffer);
-            Utils.copyToMat (sourceBuffer, matrix);
-            Core.flip (matrix, matrix, 0);
+#if OPENCV_USE_UNSAFE_CODE && UNITY_2018_2_OR_NEWER
+            unsafe
+            {
+                var ptr = (IntPtr)NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(preview.GetRawTextureData<byte>());
+                Utils.copyToMat(ptr, matrix);
+            }
+            Core.flip(matrix, matrix, 0);
+#else
+            Utils.copyToMat(preview.GetRawTextureData(), matrix);
+            Core.flip(matrix, matrix, 0);
+#endif
         }
 
-        public void CaptureFrame (Color32[] pixelBuffer)
+        public void CaptureFrame(Color32[] pixelBuffer)
         {
-            camera.CaptureFrame (sourceBuffer);
+#if OPENCV_USE_UNSAFE_CODE && UNITY_2018_2_OR_NEWER
+            unsafe
+            {
+                NativeArray<Color32> rawTextureData = preview.GetRawTextureData<Color32>();
+                int size = UnsafeUtility.SizeOf<Color32>() * rawTextureData.Length;
+                Color32* srcAddr = (Color32*)NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(rawTextureData);
 
-            GCHandle pin = GCHandle.Alloc (pixelBuffer, GCHandleType.Pinned);
-            Marshal.Copy (sourceBuffer, 0, pin.AddrOfPinnedObject (), sourceBuffer.Length);
-            pin.Free ();
+                fixed (Color32* dstAddr = pixelBuffer)
+                {
+                    UnsafeUtility.MemCpy(dstAddr, srcAddr, size);
+                }
+            }
+#else
+            byte[] rawTextureData = preview.GetRawTextureData();
+            GCHandle pin = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
+            Marshal.Copy(rawTextureData, 0, pin.AddrOfPinnedObject(), rawTextureData.Length);
+            pin.Free();
+#endif
         }
 
-        public void SwitchCamera ()
+        public void CaptureFrame(byte[] pixelBuffer)
         {
-            if (camera.IsRunning)
-                camera.StopPreview ();
+#if OPENCV_USE_UNSAFE_CODE && UNITY_2018_2_OR_NEWER
+            unsafe
+            {
+                NativeArray<byte> rawTextureData = preview.GetRawTextureData<byte>();
+                int size = UnsafeUtility.SizeOf<byte>() * rawTextureData.Length;
+                byte* srcAddr = (byte*)NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(rawTextureData);
 
-            cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
-            camera = DeviceCamera.Cameras [cameraIndex];
-            camera.PreviewResolution = new Vector2Int (requestedWidth, requestedHeight);
-            camera.Framerate = requestedFramerate;
-            StartPreview (startCallback, frameCallback);
+                fixed (byte* dstAddr = pixelBuffer)
+                {
+                    UnsafeUtility.MemCpy(dstAddr, srcAddr, size);
+                }
+            }
+#else
+            byte[] rawTextureData = preview.GetRawTextureData();
+            Buffer.BlockCopy(rawTextureData, 0, pixelBuffer, 0, rawTextureData.Length);
+#endif
+        }
+
+        public void SwitchCamera()
+        {
+            if (activeCamera == null)
+                return;
+
+            if (activeCamera != null && activeCamera.IsRunning)
+                activeCamera.StopPreview();
+
+            var devices = CameraDevice.GetDevices();
+            if (devices == null)
+            {
+                Debug.Log("User has not granted camera permission");
+                return;
+            }
+
+            cameraIndex = ++cameraIndex % devices.Length;
+            activeCamera = devices[cameraIndex];
+            activeCamera.PreviewResolution = new Resolution { width = requestedWidth, height = requestedHeight };
+            activeCamera.Framerate = requestedFramerate;
+            StartPreview(startCallback, frameCallback);
         }
 
         #endregion

@@ -42,7 +42,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 11
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
-    serializedVersion: 8
+    serializedVersion: 9
     m_Resolution: 2
     m_BakeResolution: 40
     m_TextureWidth: 1024
@@ -89,7 +89,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
   m_LightingDataAsset: {fileID: 0}
-  m_ShadowMaskMode: 2
+  m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -468,6 +468,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &355797320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -608,6 +609,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &409547346
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -794,6 +796,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &451272890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1080,6 +1083,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1141497936
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1295,6 +1299,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1187217984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1648,6 +1653,7 @@ MonoBehaviour:
   rawImage: {fileID: 675452960}
   aspectFitter: {fileID: 675452962}
   useFrontCamera: 0
+  performImageProcessingEachTime: 0
   imageProcessingType: 0
   imageProcessingTypeDropdown: {fileID: 0}
   applyComicFilterToggle: {fileID: 409547346}
@@ -1679,7 +1685,7 @@ MonoBehaviour:
   offset: {x: 10, y: 10}
   boxVisible: 1
   boxWidth: 200
-  boxHeight: 240
+  boxHeight: 270
   padding: {x: 8, y: 5}
   consoleHeight: 50
   consoleText: 
@@ -1875,6 +1881,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1789223479
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2090,6 +2097,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1892564640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2231,6 +2239,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1916618826
 MonoBehaviour:
   m_ObjectHideFlags: 0

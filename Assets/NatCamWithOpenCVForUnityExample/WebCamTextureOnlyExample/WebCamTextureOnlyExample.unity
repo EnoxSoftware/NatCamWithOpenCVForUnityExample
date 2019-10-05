@@ -42,7 +42,7 @@ RenderSettings:
 --- !u!157 &4
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 11
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -54,7 +54,7 @@ LightmapSettings:
     m_EnableBakedLightmaps: 1
     m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
-    serializedVersion: 8
+    serializedVersion: 9
     m_Resolution: 1
     m_BakeResolution: 50
     m_TextureWidth: 1024
@@ -89,7 +89,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
   m_LightingDataAsset: {fileID: 0}
-  m_ShadowMaskMode: 2
+  m_UseShadowmask: 1
 --- !u!196 &5
 NavMeshSettings:
   serializedVersion: 2
@@ -202,6 +202,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &76103132
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -581,6 +582,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &266668977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1420,6 +1422,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1177067777
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1687,6 +1690,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1499899216
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2031,6 +2035,7 @@ MonoBehaviour:
   m_PreferredHeight: 40
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &1699795910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2166,6 +2171,7 @@ MonoBehaviour:
   rawImage: {fileID: 427314254}
   aspectFitter: {fileID: 427314253}
   useFrontCamera: 0
+  performImageProcessingEachTime: 0
   imageProcessingType: 0
   imageProcessingTypeDropdown: {fileID: 76103132}
 --- !u!114 &1709852084
@@ -2183,7 +2189,7 @@ MonoBehaviour:
   offset: {x: 10, y: 10}
   boxVisible: 1
   boxWidth: 200
-  boxHeight: 240
+  boxHeight: 270
   padding: {x: 8, y: 5}
   consoleHeight: 50
   consoleText: 

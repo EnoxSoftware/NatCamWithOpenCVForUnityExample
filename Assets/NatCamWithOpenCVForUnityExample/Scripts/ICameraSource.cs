@@ -1,6 +1,6 @@
-using UnityEngine;
-using System;
 using OpenCVForUnity.CoreModule;
+using System;
+using UnityEngine;
 
 namespace NatCamWithOpenCVForUnityExample
 {
@@ -16,18 +16,22 @@ namespace NatCamWithOpenCVForUnityExample
 
         bool isRunning { get; }
 
+        bool isFrontFacing { get; }
+
         #endregion
 
 
         #region --Operations--
 
-        void StartPreview (Action startCallback, Action frameCallback);
+        void StartPreview(Action startCallback, Action frameCallback);
 
-        void CaptureFrame (Mat matrix);
+        void CaptureFrame(Mat matrix);
 
-        void CaptureFrame (Color32[] pixelBuffer);
+        void CaptureFrame(Color32[] pixelBuffer);
 
-        void SwitchCamera ();
+        void CaptureFrame(byte[] pixelBuffer);
+
+        void SwitchCamera();
 
         #endregion
     }

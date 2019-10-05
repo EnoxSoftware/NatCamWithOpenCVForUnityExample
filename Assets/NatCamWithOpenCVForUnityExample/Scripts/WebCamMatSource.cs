@@ -1,8 +1,7 @@
-using UnityEngine;
-using System;
-using System.Runtime.InteropServices;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
+using System;
+using UnityEngine;
 
 namespace NatCamWithOpenCVForUnityExample
 {
@@ -12,7 +11,7 @@ namespace NatCamWithOpenCVForUnityExample
 
         #region --Op vars--
 
-        private WebCamTexture webCamTexture;
+        private WebCamDevice cameraDevice;
         private Action startCallback, frameCallback;
         private Mat sourceMatrix, uprightMatrix;
         private Color32[] bufferColors;
@@ -20,93 +19,134 @@ namespace NatCamWithOpenCVForUnityExample
         private int cameraIndex;
         private bool firstFrame;
         private DeviceOrientation orientation;
+        private bool rotate90Degree = false;
 
         #endregion
 
 
         #region --Client API--
 
-        public int width { get { return uprightMatrix.width (); } }
+        public int width { get { return uprightMatrix.width(); } }
 
-        public int height { get { return uprightMatrix.height (); } }
+        public int height { get { return uprightMatrix.height(); } }
 
-        public bool isRunning { get { return (webCamTexture == null) ? false : webCamTexture.isPlaying; } }
+        public bool isRunning { get { return (activeCamera && !firstFrame) ? activeCamera.isPlaying : false; } }
 
-        public WebCamDevice activeCamera { get { return WebCamTexture.devices [cameraIndex]; } }
+        public bool isFrontFacing { get { return activeCamera ? cameraDevice.isFrontFacing : false; } }
 
-        public WebCamMatSource (int width, int height, int framerate = 30, bool front = false)
+        public WebCamTexture activeCamera { get; private set; }
+
+        public WebCamMatSource(int width, int height, int framerate = 30, bool front = false)
         {
-            #if UNITY_ANDROID && !UNITY_EDITOR
+            requestedWidth = width;
+            requestedHeight = height;
+            requestedFramerate = framerate;
+#if UNITY_ANDROID && !UNITY_EDITOR
             // Set the requestedFPS parameter to avoid the problem of the WebCamTexture image becoming low light on some Android devices. (Pixel, Pixel 2)
             // https://forum.unity.com/threads/released-opencv-for-unity.277080/page-33#post-3445178
             framerate = front ? 15 : framerate;
-            #endif
-            this.requestedWidth = width;
-            this.requestedHeight = height;
-            this.requestedFramerate = framerate;
-            for (; cameraIndex < WebCamTexture.devices.Length; cameraIndex++)
-                if (WebCamTexture.devices [cameraIndex].isFrontFacing == front)
-                    break;
-            
-            if (cameraIndex == WebCamTexture.devices.Length) {
-                Debug.LogError ("Camera is null. Consider using " + (front ? "rear" : "front") + " camera.");
+#endif
+
+            var devices = WebCamTexture.devices;
+            if (devices.Length == 0)
+            {
+                Debug.Log("Camera device does not exist");
                 return;
             }
 
-            this.webCamTexture = new WebCamTexture (activeCamera.name, width, height, framerate);
+            // Pick camera
+            for (; cameraIndex < devices.Length; cameraIndex++)
+                if (devices[cameraIndex].isFrontFacing == front)
+                    break;
+
+            if (cameraIndex == devices.Length)
+            {
+                Debug.LogError("Camera is null. Consider using " + (front ? "rear" : "front") + " camera.");
+                return;
+            }
+
+            cameraDevice = devices[cameraIndex];
+            activeCamera = new WebCamTexture(cameraDevice.name, requestedWidth, requestedHeight, framerate);
         }
 
-        public void Dispose ()
+        public void Dispose()
         {
             Camera.onPostRender -= OnFrame;
+            if (activeCamera != null)
+            {
+                activeCamera.Stop();
+                WebCamTexture.Destroy(activeCamera);
+                activeCamera = null;
+            }
+
             if (sourceMatrix != null)
-                sourceMatrix.Dispose ();
+                sourceMatrix.Dispose();
             if (uprightMatrix != null)
-                uprightMatrix.Dispose ();
+                uprightMatrix.Dispose();
             sourceMatrix =
             uprightMatrix = null;
             bufferColors = null;
-            webCamTexture.Stop ();
-            WebCamTexture.Destroy (webCamTexture);
-            webCamTexture = null;
         }
 
-        public void StartPreview (Action startCallback, Action frameCallback)
+        public void StartPreview(Action startCallback, Action frameCallback)
         {
-            if (webCamTexture == null)
+            if (activeCamera == null)
                 return;
 
             this.startCallback = startCallback;
             this.frameCallback = frameCallback;
             Camera.onPostRender += OnFrame;
             firstFrame = true;
-            webCamTexture.Play ();
+            activeCamera.Play();
         }
 
-        public void CaptureFrame (Mat matrix)
+        public void CaptureFrame(Mat matrix)
         {
-            uprightMatrix.copyTo (matrix);
+            if (uprightMatrix == null) return;
+
+            uprightMatrix.copyTo(matrix);
         }
 
-        public void CaptureFrame (Color32[] pixelBuffer)
+        public void CaptureFrame(Color32[] pixelBuffer)
         {
-            Utils.copyFromMat (uprightMatrix, pixelBuffer);
+            if (uprightMatrix == null) return;
+
+            Utils.copyFromMat(uprightMatrix, pixelBuffer);
         }
 
-        public void SwitchCamera ()
+        public void CaptureFrame(byte[] pixelBuffer)
         {
-            Dispose ();
-            cameraIndex = ++cameraIndex % WebCamTexture.devices.Length;
+            if (uprightMatrix == null) return;
 
-            bool front = activeCamera.isFrontFacing;
+            Utils.copyFromMat(uprightMatrix, pixelBuffer);
+        }
+
+        public void SwitchCamera()
+        {
+            if (activeCamera == null)
+                return;
+
+            Dispose();
+
+            var devices = WebCamTexture.devices;
+            if (devices.Length == 0)
+            {
+                Debug.Log("Camera device does not exist");
+                return;
+            }
+
+            cameraIndex = ++cameraIndex % devices.Length;
+            cameraDevice = devices[cameraIndex];
+
+            bool front = cameraDevice.isFrontFacing;
             int framerate = requestedFramerate;
-            #if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR
             // Set the requestedFPS parameter to avoid the problem of the WebCamTexture image becoming low light on some Android devices. (Pixel, Pixel 2)
             // https://forum.unity.com/threads/released-opencv-for-unity.277080/page-33#post-3445178
             framerate = front ? 15 : framerate;
-            #endif
-            webCamTexture = new WebCamTexture (activeCamera.name, requestedWidth, requestedHeight, framerate);
-            StartPreview (startCallback, frameCallback);
+#endif
+            activeCamera = new WebCamTexture(cameraDevice.name, requestedWidth, requestedHeight, framerate);
+            StartPreview(startCallback, frameCallback);
         }
 
         #endregion
@@ -114,84 +154,102 @@ namespace NatCamWithOpenCVForUnityExample
 
         #region --Operations--
 
-        private void OnFrame (Camera camera)
+        private void OnFrame(Camera camera)
         {
-            if (!webCamTexture.isPlaying || !webCamTexture.didUpdateThisFrame)
-                return;
-            // Weird bug on macOS and macOS
-            if (webCamTexture.width == 16 || webCamTexture.height == 16)
+            if (!activeCamera.isPlaying || !activeCamera.didUpdateThisFrame)
                 return;
 
             // Check matrix
-            sourceMatrix = sourceMatrix ?? new Mat (webCamTexture.height, webCamTexture.width, CvType.CV_8UC4);
-            uprightMatrix = uprightMatrix ?? new Mat ();
-            bufferColors = bufferColors ?? new Color32[webCamTexture.width * webCamTexture.height];
+            sourceMatrix = sourceMatrix ?? new Mat(activeCamera.height, activeCamera.width, CvType.CV_8UC4);
+            uprightMatrix = uprightMatrix ?? new Mat();
+            bufferColors = bufferColors ?? new Color32[activeCamera.width * activeCamera.height];
 
             // Update matrix
-            Utils.webCamTextureToMat (webCamTexture, sourceMatrix, bufferColors, false);
-            var reference = (DeviceOrientation)(int)Screen.orientation;
-            bool rotate90Degree = false;
-            #if !UNITY_EDITOR && !(UNITY_STANDALONE || UNITY_WEBGL) 
-            switch (reference) {
-            case DeviceOrientation.LandscapeLeft:
-            case DeviceOrientation.LandscapeRight:
-                break;
-            case DeviceOrientation.Portrait: 
-            case DeviceOrientation.PortraitUpsideDown:
-                rotate90Degree = true;
-                break;
-            }
-            #else
-            #endif
+            Utils.webCamTextureToMat(activeCamera, sourceMatrix, bufferColors, false);
 
+
+            if (firstFrame)
+            {
+                rotate90Degree = false;
+                var reference = (DeviceOrientation)(int)Screen.orientation;
+
+#if !UNITY_EDITOR && !(UNITY_STANDALONE || UNITY_WEBGL)
+                switch (reference)
+                {
+                    case DeviceOrientation.LandscapeLeft:
+                    case DeviceOrientation.LandscapeRight:
+                        break;
+                    case DeviceOrientation.Portrait:
+                    case DeviceOrientation.PortraitUpsideDown:
+                        rotate90Degree = true;
+                        break;
+                }
+#endif
+            }
 
             int flipCode = 0;
-            if (activeCamera.isFrontFacing) {
-                if (webCamTexture.videoRotationAngle == 0 || webCamTexture.videoRotationAngle == 90) {
+            if (cameraDevice.isFrontFacing)
+            {
+                if (activeCamera.videoRotationAngle == 0 || activeCamera.videoRotationAngle == 90)
+                {
                     flipCode = -1;
-                } else if (webCamTexture.videoRotationAngle == 180 || webCamTexture.videoRotationAngle == 270) {
+                }
+                else if (activeCamera.videoRotationAngle == 180 || activeCamera.videoRotationAngle == 270)
+                {
                     flipCode = int.MinValue;
                 }
-            } else {
-                if (webCamTexture.videoRotationAngle == 180 || webCamTexture.videoRotationAngle == 270) {
+            }
+            else
+            {
+                if (activeCamera.videoRotationAngle == 180 || activeCamera.videoRotationAngle == 270)
+                {
                     flipCode = 1;
                 }
             }
 
-            if (rotate90Degree && activeCamera.isFrontFacing) {
-                if (flipCode == int.MinValue) {
+            if (rotate90Degree && cameraDevice.isFrontFacing)
+            {
+                if (flipCode == int.MinValue)
+                {
                     flipCode = -1;
-                } else if (flipCode == 0) {
+                }
+                else if (flipCode == 0)
+                {
                     flipCode = 1;
-                } else if (flipCode == 1) {
+                }
+                else if (flipCode == 1)
+                {
                     flipCode = 0;
-                } else if (flipCode == -1) {
+                }
+                else if (flipCode == -1)
+                {
                     flipCode = int.MinValue;
                 }
             }
 
-            if (flipCode > int.MinValue) {
-                Core.flip (sourceMatrix, sourceMatrix, flipCode);
+            if (flipCode > int.MinValue)
+            {
+                Core.flip(sourceMatrix, sourceMatrix, flipCode);
             }
 
-            if (rotate90Degree) {
-                Core.rotate (sourceMatrix, uprightMatrix, Core.ROTATE_90_CLOCKWISE);
-            } else {
-                sourceMatrix.copyTo (uprightMatrix);
+            if (rotate90Degree)
+            {
+                Core.rotate(sourceMatrix, uprightMatrix, Core.ROTATE_90_CLOCKWISE);
+            }
+            else
+            {
+                sourceMatrix.copyTo(uprightMatrix);
             }
 
-            // Orientation checking
-            if (orientation != reference) {
-                orientation = reference;
-                firstFrame = true;
-            }
+
             // Invoke client callbacks
-            if (firstFrame) {
-                startCallback ();
+            if (firstFrame)
+            {
+                startCallback();
                 firstFrame = false;
             }
 
-            frameCallback ();
+            frameCallback();
         }
 
         #endregion
