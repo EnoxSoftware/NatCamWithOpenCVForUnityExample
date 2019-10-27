@@ -6,18 +6,13 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-#if OPENCV_USE_UNSAFE_CODE && UNITY_2018_2_OR_NEWER
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Collections;
-#endif
-
 namespace NatCamWithOpenCVForUnity.UnityUtils.Helper
 {
     /// <summary>
     /// NatCamPreview to mat helper.
-    /// v 1.0.7
+    /// v 1.0.8
     /// Depends on NatCam version 2.3 or later.
-    /// Depends on OpenCVForUnity version 2.3.3 or later.
+    /// Depends on OpenCVForUnity version 2.3.7 or later.
     /// </summary>
     public class NatCamPreviewToMatHelper : WebCamTextureToMatHelper
     {
@@ -34,7 +29,6 @@ namespace NatCamWithOpenCVForUnity.UnityUtils.Helper
             }
         }
 
-        //        protected byte[] pixelBuffer;
         protected bool didUpdateThisFrame = false;
 
         protected CameraDevice natCamCameraDevice;
@@ -119,23 +113,22 @@ namespace NatCamWithOpenCVForUnity.UnityUtils.Helper
 
             isInitWaiting = true;
 
-
-#if UNITY_ANDROID && !UNITY_EDITOR
-            // Wait for one frame until ready to accurately reflects current screen orientation to the direction of a camera image.
-            yield return null;
-#endif
-
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
             // Checks camera permission state.
-            if (CameraDevice.GetDevices() == null)
+            IEnumerator coroutine = hasUserAuthorizedCameraPermission();
+            yield return coroutine;
+
+            if (!(bool)coroutine.Current)
             {
                 isInitWaiting = false;
                 initCoroutine = null;
 
                 if (onErrorOccurred != null)
-                    onErrorOccurred.Invoke(ErrorCode.CAMERA_DEVICE_NOT_EXIST);
+                    onErrorOccurred.Invoke(ErrorCode.CAMERA_PERMISSION_DENIED);
 
                 yield break;
             }
+#endif
 
             // Creates the camera
             var devices = CameraDevice.GetDevices();
@@ -364,15 +357,7 @@ namespace NatCamWithOpenCVForUnity.UnityUtils.Helper
                 return (rotatedFrameMat != null) ? rotatedFrameMat : frameMat;
             }
 
-#if OPENCV_USE_UNSAFE_CODE && UNITY_2018_2_OR_NEWER
-            unsafe
-            {
-                var ptr = (IntPtr)NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(preview.GetRawTextureData<byte>());
-                Utils.copyToMat(ptr, frameMat);
-            }
-#else
             Utils.fastTexture2DToMat(preview, frameMat, false);
-#endif
 
             FlipMat(frameMat, flipVertical, flipHorizontal);
             if (rotatedFrameMat != null)
@@ -454,7 +439,6 @@ namespace NatCamWithOpenCVForUnity.UnityUtils.Helper
             natCamCameraDevice = null;
             preview = null;
 
-            //            pixelBuffer = null;
             didUpdateThisFrame = false;
 
             if (frameMat != null)

@@ -16,7 +16,7 @@
 - Scripting backend MONO / IL2CPP
 - [NatCam - WebCam API](https://assetstore.unity.com/packages/tools/integration/natcam-pro-webcam-api-52154?aid=1011l4ehR) 2.3.0+
 - [NatShare - Mobile Sharing API](https://assetstore.unity.com/packages/tools/integration/natshare-mobile-sharing-api-117705?aid=1011l4ehR) 1.1f3+
-- [OpenCV for Unity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088?aid=1011l4ehR) 2.3.6+
+- [OpenCV for Unity](https://assetstore.unity.com/packages/tools/integration/opencv-for-unity-21088?aid=1011l4ehR) 2.3.7+
 
 
 ## Demo
