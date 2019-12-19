@@ -1,4 +1,4 @@
-﻿using NatShareU;
+﻿using NatShare;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.UnityUtils;
@@ -143,16 +143,29 @@ namespace NatCamWithOpenCVForUnityExample
 
         public void OnShareButtonClick()
         {
-            NatShare.Share(texture,
-                () =>
+            using (var payload = new SharePayload("NatCamWithOpenCVForUnityExample",
+                completionHandler: () =>
                 {
-                    Debug.Log("sharing is complete.");
-                });
+                    Debug.Log("User shared image!");
+                }
+            ))
+            {
+                payload.AddText("User shared image!");
+                payload.AddImage(texture);
+            }
         }
 
         public void OnSaveToCameraRollButtonClick()
         {
-            NatShare.SaveToCameraRoll(texture, "NatCamWithOpenCVForUnityExample");
+            using (var payload = new SavePayload("NatCamWithOpenCVForUnityExample",
+                completionHandler: () =>
+                {
+                    Debug.Log("User saved image to camera roll!");
+                }
+            ))
+            {
+                payload.AddImage(texture);
+            }
         }
     }
 }
