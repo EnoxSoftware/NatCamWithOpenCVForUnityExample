@@ -31,9 +31,9 @@ namespace NatCamWithOpenCVForUnityExample
 
         public int height { get; private set; }
 
-        public bool isRunning { get { return activeCamera ? activeCamera.IsRunning : false; } }
+        public bool isRunning { get { return activeCamera != null ? activeCamera.IsRunning : false; } }
 
-        public bool isFrontFacing { get { return activeCamera ? activeCamera.IsFrontFacing : false; } }
+        public bool isFrontFacing { get { return activeCamera != null ? activeCamera.IsFrontFacing : false; } }
 
         public Texture2D preview { get; private set; }
 
@@ -64,7 +64,7 @@ namespace NatCamWithOpenCVForUnityExample
             }
 
             activeCamera = devices[cameraIndex];
-            activeCamera.PreviewResolution = new Resolution { width = requestedWidth, height = requestedHeight };
+            activeCamera.PreviewResolution = (width: requestedWidth, height: requestedHeight);
             activeCamera.Framerate = requestedFramerate;
         }
 
@@ -184,7 +184,7 @@ namespace NatCamWithOpenCVForUnityExample
 
             cameraIndex = ++cameraIndex % devices.Length;
             activeCamera = devices[cameraIndex];
-            activeCamera.PreviewResolution = new Resolution { width = requestedWidth, height = requestedHeight };
+            activeCamera.PreviewResolution = (width: requestedWidth, height: requestedHeight);
             activeCamera.Framerate = requestedFramerate;
             StartPreview(startCallback, frameCallback);
         }

@@ -11,7 +11,7 @@ namespace NatCamWithOpenCVForUnityExample
 
         public static string GetNatCamVersion()
         {
-            return "2.3.0";
+            return "2.3.1";
         }
 
         public enum FrameratePreset

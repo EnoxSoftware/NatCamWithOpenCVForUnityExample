@@ -10,8 +10,8 @@ namespace NatCamWithOpenCVForUnity.UnityUtils.Helper
 {
     /// <summary>
     /// NatCamPreview to mat helper.
-    /// v 1.0.8
-    /// Depends on NatCam version 2.3 or later.
+    /// v 1.0.9
+    /// Depends on NatCam version 2.3.1 or later.
     /// Depends on OpenCVForUnity version 2.3.7 or later.
     /// </summary>
     public class NatCamPreviewToMatHelper : WebCamTextureToMatHelper
@@ -191,7 +191,7 @@ namespace NatCamWithOpenCVForUnity.UnityUtils.Helper
             natCamCameraDevice.Framerate = (int)requestedFPS;
 
             // Set the camera's preview resolution
-            natCamCameraDevice.PreviewResolution = new Resolution { width = requestedWidth, height = requestedHeight };
+            natCamCameraDevice.PreviewResolution = (width: requestedWidth, height: requestedHeight);
 
             // Starts the camera
             // Register callback for when the preview starts

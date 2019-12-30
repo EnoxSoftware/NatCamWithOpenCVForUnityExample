@@ -47,7 +47,7 @@ namespace NatCamWithOpenCVForUnityExample
             NatCamWithOpenCVForUnityExample.ExampleSceneConfiguration(out performImageProcessingEachTime);
             // Create camera source
             cameraSource = new NatCamSource(width, height, framerate, useFrontCamera);
-            if (!cameraSource.activeCamera)
+            if (cameraSource.activeCamera == null)
                 cameraSource = new NatCamSource(width, height, framerate, !useFrontCamera);
             cameraSource.StartPreview(OnStart, OnFrame);
             // Update UI
