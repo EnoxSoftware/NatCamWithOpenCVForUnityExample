@@ -1,3 +1,9 @@
+# NatCam has been deprecated. 
+**An example using the new asset "NatDevice" has been published.** 
+[https://github.com/EnoxSoftware/NatDeviceWithOpenCVForUnityExample](https://github.com/EnoxSoftware/NatDeviceWithOpenCVForUnityExample)
+
+---
+
 # NatCam With OpenCVForUnity Example
 - An example of a benchmark test integrating NatCam and OpenCVForUnity. (Comparison between WebCamTexture and NatCam API)  
 - An example of replacing WebCamTextureToMatHelper with NatCamPreviewToMatHelper.
